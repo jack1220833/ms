@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>听录音选句子-四年级手机版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;overflow:hidden;width:100%}
+body{height:100%;overflow:hidden;position:fixed;width:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#f0f4ff;color:#333}
+.wrap{min-height:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 80px}
+.back{display:inline-block;padding:8px 14px;font-size:14px;color:#667eea;margin-bottom:12px;cursor:pointer;touch-action:manipulation}
+.top{text-align:center;margin-bottom:16px}
+.top h2{font-size:22px;color:#4a5568}
+.top .score{font-size:14px;color:#718096;margin-top:4px}
+.loadErr{background:#fff5f5;border:1px solid #fc8181;border-radius:10px;padding:10px 14px;font-size:13px;color:#9b2c2c;margin-bottom:10px;display:none;text-align:center}
+.loadMsg{text-align:center;padding:40px 20px;color:#718096;font-size:16px}
+.filter{margin-bottom:14px;overflow-x:auto;white-space:nowrap;padding:4px 0}
+.filter::-webkit-scrollbar{display:none}
+.ubtn{display:inline-block;padding:8px 14px;margin:3px;border-radius:20px;border:1.5px solid #667eea;background:#fff;color:#667eea;font-size:13px;cursor:pointer;touch-action:manipulation}
+.ubtn.on{background:#667eea;color:#fff}
+.qbox{background:#fff;border-radius:16px;padding:24px 18px;box-shadow:0 2px 12px rgba(0,0,0,0.08);margin-bottom:14px;text-align:center}
+.qbox .play{display:inline-block;padding:14px 36px;border-radius:30px;background:#667eea;color:#fff;font-size:16px;cursor:pointer;margin:10px 0;touch-action:manipulation}
+.qbox .play:active{opacity:0.85}
+.qbox .qtxt{font-size:15px;color:#718096;margin-top:8px}
+.opts{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.opt{padding:16px 18px;border-radius:12px;background:#fff;border:2px solid #e2e8f0;font-size:16px;cursor:pointer;touch-action:manipulation;line-height:1.5;word-break:break-word;-webkit-user-select:none;user-select:none}
+.opt:active{background:#f7fafc}
+.opt.right{border-color:#48bb78;background:#f0fff4;color:#276749}
+.opt.wrong{border-color:#fc8181;background:#fff5f5;color:#9b2c2c}
+.opt.reveal{border-color:#4299e1;background:#ebf8ff;color:#2b6cb0}
+.result{background:#fff;border-radius:16px;padding:20px 18px;box-shadow:0 2px 12px rgba(0,0,0,0.08);text-align:center;display:none}
+.result h3{font-size:18px;margin-bottom:10px}
+.result .exp{font-size:14px;color:#718096;margin-bottom:14px;line-height:1.6}
+.result .bbtn{display:inline-block;padding:14px 30px;border-radius:30px;font-size:16px;cursor:pointer;margin:5px;touch-action:manipulation}
+.result .bbtn:active{opacity:0.85}
+.result .bblue{background:#667eea;color:#fff}
+.result .bgreen{background:#48bb78;color:#fff}
+.voiceTip{background:#fff3cd;border:1px solid #ffc107;border-radius:10px;padding:10px 14px;font-size:13px;color:#856404;margin-bottom:10px;display:none}
+.brand{position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px;font-size:12px;font-weight:bold;color:#000;background:rgba(255,255,255,0.95)}
+.debug-info{font-size:11px;color:#a0aec0;margin-top:8px;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="back" onclick="location.href='index.html'">← 返回首页</div>
+<div class="top">
+<h2>👂 听录音选句子</h2>
+<div class="score" id="sc">0/0</div>
+</div>
+<div class="loadErr" id="loadErr"></div>
+<div id="mainContent">
+<div class="loadMsg" id="loadMsg">正在加载数据...</div>
+<div class="voiceTip" id="voiceTip"></div>
+<div class="debug-info" id="debugInfo"></div>
+<div class="filter" id="filterBar" style="display:none">
+<button class="ubtn on" data-u="ALL" onclick="pickUnit('ALL')">全部(243)</button>
+<button class="ubtn" data-u="U1" onclick="pickUnit('U1')">U1能力(36)</button><button class="ubtn" data-u="U2" onclick="pickUnit('U2')">U2天气(32)</button><button class="ubtn" data-u="U3" onclick="pickUnit('U3')">U3节日(37)</button><button class="ubtn" data-u="U4" onclick="pickUnit('U4')">U4礼物(35)</button><button class="ubtn" data-u="U5" onclick="pickUnit('U5')">U5出行(26)</button><button class="ubtn" data-u="U6" onclick="pickUnit('U6')">U6方向(23)</button><button class="ubtn" data-u="U7" onclick="pickUnit('U7')">U7北风和太阳(18)</button><button class="ubtn" data-u="U8" onclick="pickUnit('U8')">U8雪孩子(18)</button><button class="ubtn" data-u="U9" onclick="pickUnit('U9')">U9乡下老鼠(18)</button>
+</div>
+<div class="qbox" id="qbox" style="display:none">
+<div class="play" id="playBtn" onclick="playAgain()">🔊 播放录音</div>
+<div class="qtxt">点击播放，听句子选答案</div>
+</div>
+<div class="opts" id="optsBox" style="display:none"></div>
+<div class="result" id="resBox">
+<h3 id="resH"></h3>
+<div class="exp" id="resExp"></div>
+<div>
+<div class="bbtn bgreen" onclick="playAgain()">🔊 再听一遍</div>
+<div class="bbtn bblue" onclick="nextQ()">下一题 →</div>
+</div>
+</div>
+</div>
+</div>
+<div class="brand">眉山苏启儿 微信同号 19950525152</div>
+<script>
+
+var SB_URL='https://iigckwcdwclmekyxsvbj.supabase.co';
+var SB_KEY='sb_publishable_AWxSEp2mc9X5FXD9y7sFjA_9GY19yrJ';
+var S4=[];
+var dataLoaded=false;
+
+function loadSentences(cb){
+  if(dataLoaded){cb();return}
+  var x=new XMLHttpRequest();
+  x.open('GET',SB_URL+'/rest/v1/sentences?select=s,cn,d,unit,part,cat,grade&grade=eq.4&order=id.asc');
+  x.setRequestHeader('apikey',SB_KEY);
+  x.setRequestHeader('Authorization','Bearer '+SB_KEY);
+  x.onload=function(){
+    if(x.status===200){
+      S4=JSON.parse(x.responseText);
+      dataLoaded=true;
+      if(cb)cb();
+    }else{
+      document.getElementById('loadErr').style.display='block';
+      document.getElementById('loadErr').textContent='加载失败('+x.status+')，请检查网络';
+    }
+  };
+  x.onerror=function(){
+    document.getElementById('loadErr').style.display='block';
+    document.getElementById('loadErr').textContent='网络错误，请检查网络连接';
+  };
+  x.send();
+}
+
+
+var pool=[],qi=0,cur=null,right=0,total=0,answered=false,selUnit="ALL";
+var voices=[],voicesReady=false;
+
+function getBestVoice(){
+  if(!voicesReady||!voices.length){
+    console.log('[TTS] Voices not ready, will retry');
+    return null;
+  }
+  var pri=['google','samsung','huawei','xiaomi','microsoft'];
+  for(var p=0;p<pri.length;p++){
+    for(var i=0;i<voices.length;i++){
+      var vn=voices[i].name.toLowerCase();
+      var vl=voices[i].lang.toLowerCase();
+      if(vn.indexOf(pri[p])>-1&&(vl.indexOf('en')>-1||vl.indexOf('us')>-1||vl.indexOf('gb')>-1)){
+        console.log('[TTS] Selected voice:',voices[i].name,'lang:',voices[i].lang);
+        return voices[i];
+      }
+    }
+  }
+  for(var i=0;i<voices.length;i++){
+    var vl=voices[i].lang.toLowerCase();
+    if(vl.indexOf('en')>-1||vl.indexOf('us')>-1||vl.indexOf('gb')>-1){
+      console.log('[TTS] Fallback voice:',voices[i].name,'lang:',voices[i].lang);
+      return voices[i];
+    }
+  }
+  console.log('[TTS] No English voice found, using first:',voices[0].name);
+  return voices[0]||null;
+}
+
+function speak(txt,cb){
+  if(!('speechSynthesis' in window)){
+    console.error('[TTS] speechSynthesis not supported');
+    alert('您的浏览器不支持语音播放，请使用Chrome或Safari');
+    if(cb)cb();
+    return;
+  }
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);
+  u.lang='en-US';
+  u.rate=0.65;
+  u.pitch=1.0;
+  u.volume=1.0;
+  var vv=getBestVoice();
+  if(vv){
+    u.voice=vv;
+    console.log('[TTS] Speaking with voice:',vv.name);
+  }else{
+    console.log('[TTS] Speaking without voice (browser default)');
+  }
+  if(cb){
+    u.onend=function(){
+      console.log('[TTS] Playback completed');
+      cb();
+    };
+    u.onerror=function(e){
+      console.error('[TTS] Playback error:',e.error);
+      cb();
+    };
+  }
+  speechSynthesis.speak(u);
+  console.log('[TTS] speak() called, text:',txt);
+  
+  var tid=setInterval(function(){
+    if(!speechSynthesis.speaking){
+      clearInterval(tid);
+      return;
+    }
+    speechSynthesis.resume();
+  },3000);
+  setTimeout(function(){clearInterval(tid)},30000);
+}
+
+function checkVoice(){
+  var v=window.speechSynthesis.getVoices();
+  console.log('[TTS] checkVoice() called, voices.length:',v.length);
+  if(v.length>0){
+    voices=v;
+    voicesReady=true;
+    var en=v.filter(function(x){return x.lang.toLowerCase().indexOf('en')>-1});
+    var tip=document.getElementById('voiceTip');
+    if(en.length===0){
+      tip.textContent='⚠️ 未检测到英语语音引擎，可能无法播放音频';
+      tip.style.display='block';
+    }else{
+      tip.style.display='none';
+    }
+  }
+}
+
+if('speechSynthesis' in window){
+  checkVoice();
+  window.speechSynthesis.onvoiceschanged=function(){
+    console.log('[TTS] voiceschanged event fired');
+    checkVoice();
+  };
+}else{
+  document.getElementById('voiceTip').textContent='⚠️ 您的浏览器不支持语音播放';
+  document.getElementById('voiceTip').style.display='block';
+}
+
+function warmUpVoice(){
+  console.log('[TTS] warmUpVoice() called');
+  var testTxt='Hello';
+  var u=new SpeechSynthesisUtterance(testTxt);
+  u.lang='en-US';
+  u.rate=0.65;
+  u.onend=function(){
+    console.log('[TTS] warmUpVoice() completed');
+  };
+  u.onerror=function(e){
+    console.error('[TTS] warmUpVoice() failed:',e.error);
+  };
+  speechSynthesis.speak(u);
+  setTimeout(function(){speechSynthesis.cancel()},1000);
+}
+
+function onDataReady(){
+  document.getElementById('loadMsg').style.display='none';
+  document.getElementById('filterBar').style.display='block';
+  document.getElementById('qbox').style.display='block';
+  document.getElementById('optsBox').style.display='flex';
+  document.querySelector('.ubtn[data-u="ALL"]').textContent='全部('+S4.length+')';
+  buildPool();nextQ();
+}
+
+function pickUnit(u){
+  selUnit=u;
+  var btns=document.querySelectorAll('.ubtn');
+  for(var i=0;i<btns.length;i++){btns[i].classList.toggle('on',btns[i].getAttribute('data-u')===u)}
+  buildPool();qi=0;nextQ();
+}
+
+function buildPool(){
+  pool=selUnit==='ALL'?S4.slice():S4.filter(function(x){return x.unit===selUnit});
+  shuffle(pool);
+}
+
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}}
+
+function nextQ(){
+  document.getElementById('resBox').style.display='none';
+  document.getElementById('qbox').style.display='block';
+  document.getElementById('optsBox').style.display='flex';
+  if(qi>=pool.length){buildPool();qi=0}
+  cur=pool[qi];qi++;answered=false;
+  makeOpts();
+  setTimeout(function(){playAgain();},300);
+}
+
+function makeOpts(){
+  var box=document.getElementById('optsBox');box.innerHTML='';
+  var all=[];
+  for(var i=0;i<S4.length;i++){if(S4[i].s!==cur.s)all.push(S4[i].s)}
+  shuffle(all);
+  var opts=[cur.s];
+  for(var i=0;i<all.length&&opts.length<4;i++){if(opts.indexOf(all[i])===-1)opts.push(all[i])}
+  shuffle(opts);
+  for(var i=0;i<opts.length;i++){
+    var d=document.createElement('div');
+    d.className='opt';d.textContent=opts[i];d.setAttribute('data-s',opts[i]);
+    bindTap(d,function(e){if(answered)return;answered=true;pick(e.currentTarget)});
+    box.appendChild(d);
+  }
+}
+
+function bindTap(el,fn){
+  var locked=false;
+  el.addEventListener('touchend',function(e){
+    if(locked)return;
+    locked=true;
+    e.preventDefault();
+    fn();
+    setTimeout(function(){locked=false},350);
+  },{passive:false});
+  el.addEventListener('click',function(){
+    if(locked)return;
+    locked=true;
+    fn();
+    setTimeout(function(){locked=false},350);
+  });
+}
+
+function pick(el){
+  var s=el.getAttribute('data-s');
+  var isRight=(s===cur.s);
+  total++;
+  if(isRight){right++;el.classList.add('right')}
+  else{el.classList.add('wrong');showCorrect()}
+  document.getElementById('sc').textContent=right+'/'+total;
+  showResult(isRight,s);
+}
+
+function showCorrect(){
+  var opts=document.querySelectorAll('.opt');
+  for(var i=0;i<opts.length;i++){if(opts[i].getAttribute('data-s')===cur.s)opts[i].classList.add('reveal')}
+}
+
+function showResult(isRight,wrongS){
+  var rb=document.getElementById('resBox');
+  var h=document.getElementById('resH');
+  var exp=document.getElementById('resExp');
+  document.getElementById('qbox').style.display='none';
+  document.getElementById('optsBox').style.display='none';
+  rb.style.display='block';
+  if(isRight){
+    h.textContent='\ud83c\udf89 \u7b54\u5bf9\u4e86\uff01';h.style.color='#276749';
+    exp.innerHTML='\u6b63\u786e\u7b54\u6848\uff1a<b>'+cur.s+'</b><br>'+cur.cn;
+  }else{
+    h.textContent='\ud83d\ude0a \u518d\u60f3\u60f3';h.style.color='#9b2c2c';
+    exp.innerHTML='\u6b63\u786e\u7b54\u6848\uff1a<b>'+cur.s+'</b><br>'+cur.cn+'<br><span style="color:#9b2c2c">\u4f60\u9009\u7684\uff1a'+wrongS+'</span>';
+  }
+}
+
+function playAgain(){
+  console.log('[TTS] playAgain() called, cur:',cur);
+  if(cur){
+    speak(cur.s);
+  }else{
+    console.warn('[TTS] playAgain() called but no current sentence');
+  }
+}
+
+if('mediaSession' in navigator){
+  navigator.mediaSession.metadata=new MediaMetadata({title:'\u82f1\u8bed\u5b66\u4e60',artist:'\u56db\u5e74\u7ea7\u82f1\u8bed'});
+  var acts=['play','pause','stop','seekbackward','seekforward'];
+  for(var i=0;i<acts.length;i++){try{navigator.mediaSession.setActionHandler(acts[i],function(){})}catch(e){}}
+}
+
+loadSentences(onDataReady);
+setTimeout(warmUpVoice,2000);
+
+var vh=window.innerHeight;document.documentElement.style.height=vh+'px';document.querySelector('.wrap').style.height=vh+'px';
+var lastH=vh;
+window.addEventListener('resize',function(){var n=window.innerHeight;if(Math.abs(n-lastH)>100){lastH=n;document.documentElement.style.height=n+'px';document.querySelector('.wrap').style.height=n+'px'}});
+</script>
+</body>
+</html>
