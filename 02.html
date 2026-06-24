@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>归总大挑战</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;700;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:"Noto Sans SC","PingFang SC","Microsoft YaHei",sans-serif;background:linear-gradient(135deg,#eef2ff 0%,#fdf2f8 50%,#fff7ed 100%);min-height:100vh;display:flex;justify-content:center;align-items:center;overflow-y:auto}
+.container{width:90%;max-width:600px;text-align:center}
+.badge{display:inline-block;background:linear-gradient(135deg,#7c3aed,#a855f7);color:#fff;padding:6px 24px;border-radius:30px;font-size:1em;font-weight:700;letter-spacing:0.15em;margin-bottom:14px;box-shadow:0 4px 15px rgba(124,58,237,0.3)}
+.greeting{color:#7c3aed;font-size:0.9em;font-weight:700;margin-bottom:8px;display:none}
+.stats-bar{background:rgba(255,255,255,0.9);border:1px solid rgba(0,0,0,0.08);border-radius:12px;padding:10px 18px;margin-bottom:20px;font-size:0.85em;color:#4a5568;box-shadow:0 2px 8px rgba(0,0,0,0.06);display:none}
+.stats-bar span{font-weight:700}.stats-bar .s-correct{color:#059669}.stats-bar .s-total{color:#2563eb}.stats-bar .s-rate{color:#d97706}
+.question-box{background:rgba(255,255,255,0.95);border:1px solid rgba(0,0,0,0.06);border-radius:20px;padding:40px 30px;margin-bottom:30px;box-shadow:0 4px 20px rgba(0,0,0,0.08)}
+.question-box p{color:#2d3748;font-size:1.25em;line-height:1.8;font-weight:400}
+.scenario-icon{font-size:2.5em;margin-bottom:16px}
+.choices{display:grid;grid-template-columns:1fr 1fr;gap:14px;justify-items:center}
+.choice-btn{width:100%;max-width:220px;padding:22px 20px;border:2px solid rgba(0,0,0,0.1);border-radius:16px;background:rgba(255,255,255,0.95);cursor:pointer;transition:all 0.3s;display:flex;align-items:center;justify-content:center;text-decoration:none;box-shadow:0 2px 8px rgba(0,0,0,0.06)}
+.choice-btn:hover{transform:translateY(-4px);border-color:#7c3aed;background:rgba(124,58,237,0.08);box-shadow:0 8px 25px rgba(124,58,237,0.15)}
+.choice-value{font-size:1.8em;color:#1a202c;font-weight:900}
+.start-area{padding:60px 0}
+.start-btn{display:inline-block;background:linear-gradient(135deg,#4ecca3,#53d8fb);color:#fff;font-size:1.3em;font-weight:900;padding:18px 48px;border-radius:60px;cursor:pointer;animation:glow 2s ease-in-out infinite;transition:transform .2s;border:none}
+.start-btn:hover{transform:scale(1.05)}.start-btn:active{transform:scale(.97)}
+@keyframes glow{0%,100%{box-shadow:0 0 20px rgba(78,204,163,.3)}50%{box-shadow:0 0 40px rgba(78,204,163,.6)}}
+.start-hint{color:#9ca3af;font-size:.85em;margin-top:16px}
+.content-hidden{display:none}
+.content-visible{display:block;animation:fadeIn 0.6s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.footer{color:#1a1a1a;font-size:1.1em;font-weight:bold;margin-top:30px;padding:8px 0}
+@media(max-width:480px){.badge{font-size:0.9em;padding:5px 18px;margin-bottom:14px}.question-box{padding:28px 20px}.question-box p{font-size:1.1em}.scenario-icon{font-size:2em}.choice-value{font-size:1.5em}.choice-btn{padding:18px 16px}}
+.speech-btn{display:inline-block;background:linear-gradient(135deg,#4ecca3,#53d8fb);color:#fff;border:none;padding:8px 20px;border-radius:20px;font-size:0.9em;cursor:pointer;margin-bottom:12px;box-shadow:0 2px 8px rgba(78,204,163,0.3);animation:glow 2s ease-in-out infinite}.speech-btn:active{transform:scale(0.95)}
+</style>
+</head>
+<body>
+<div class="container">
+<div class="badge">归总大挑战</div>
+<div class="greeting" id="greeting"></div>
+<div class="stats-bar" id="statsBar"></div>
+<div class="start-area" id="startArea">
+<div style="font-size:3em;margin-bottom:16px">📈</div>
+<div class="start-btn" onclick="enterGame()">点击开始</div>
+<div class="start-hint">点击后朗读题目</div>
+</div>
+<div id="mainContent" class="content-hidden">
+<button id="speechBtn" class="speech-btn" onclick="_manualSpeak()" style="display:none">🔊 点击朗读</button>
+<div class="question-box" id="questionBox" style="display:none"></div>
+<div class="choices" id="choicesBox" style="display:none"></div>
+</div>
+<div class="footer">清班数学组小同学们研制 制作：虹虹姐，刚子，Tony，雨香屁</div>
+</div>
+
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+// Supabase 配置
+const SUPABASE_URL = 'https://iigckwcdwclmekyxsvbj.supabase.co';
+const SUPABASE_KEY = 'sb_publishable_AWxSEp2mc9X5FXD9y7sFjA_9GY19yrJ';
+var db = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+var A,B,C,total,ans,grade,scenario;
+var options=[];
+var startTime=null; // 记录答题开始时间
+var currentScenario=0;
+var scenarios=[
+{icon:'📖',mainText:'看书',itemUnit:'页',timeUnit:'天',timeName:'天'},
+{icon:'🚶',mainText:'走路',itemUnit:'米',timeUnit:'分钟',timeName:'分钟'},
+{icon:'🏭',mainText:'生产零件',itemUnit:'个',timeUnit:'天',timeName:'天'},
+{icon:'✏️',mainText:'写字',itemUnit:'个',timeUnit:'天',timeName:'天'}
+];
+var ls={
+get:function(k){try{return localStorage.getItem(k)}catch(e){return null}},
+set:function(k,v){try{localStorage.setItem(k,v)}catch(e){}},
+remove:function(k){try{localStorage.removeItem(k)}catch(e){}}
+};
+var playerName=ls.get('playerName');
+if(playerName){var gEl=document.getElementById('greeting');gEl.textContent=playerName+'，加油！';gEl.style.display='block'}
+
+function updateStatsDisplay(){
+try{
+var correct=parseInt(ls.get('unitGame_correct')||'0');
+var wrong=parseInt(ls.get('unitGame_wrong')||'0');
+var total=correct+wrong;
+var rate=total>0?Math.round(correct/total*100):0;
+var el=document.getElementById('statsBar');
+if(el){el.innerHTML='累计做题 <span class="s-total">'+total+'</span> 题 · 答对 <span class="s-correct">'+correct+'</span> 题 · 正确率 <span class="s-rate">'+rate+'%</span>';el.style.display='block'}
+}catch(e){}
+}
+
+// 保存答题记录到数据库
+async function saveRecordToDB(isCorrect, timeSpent){
+var playerId=sessionStorage.getItem('player_id');
+if(!playerId)return;
+try{
+// 插入答题记录
+await db.from('records').insert({
+player_id:parseInt(playerId),
+game_type:'math',
+module:2,
+scenario:currentScenario,
+is_correct:isCorrect,
+time_spent:timeSpent,
+created_at:new Date().toISOString()
+});
+
+// 更新排行榜
+var {data:lbData}=await db.from('leaderboard').select('*').eq('player_id',parseInt(playerId)).single();
+if(lbData){
+// 更新现有记录
+var updateData={
+last_active:new Date().toISOString()
+};
+if(isCorrect){
+updateData.total_correct=lbData.total_correct+1;
+}else{
+updateData.total_wrong=lbData.total_wrong+1;
+}
+await db.from('leaderboard').update(updateData).eq('player_id',parseInt(playerId));
+}else{
+// 创建新记录
+await db.from('leaderboard').insert({
+player_id:parseInt(playerId),
+total_correct:isCorrect?1:0,
+total_wrong:isCorrect?0:1,
+last_active:new Date().toISOString()
+});
+}
+}catch(e){
+console.error('保存记录失败:',e);
+}
+}
+
+function answerClick(isCorrect,href){
+// 计算用时
+var timeSpent=0;
+if(startTime){
+timeSpent=Math.round((Date.now()-startTime)/1000);
+}
+
+// 本地存储
+try{
+if(isCorrect){var c=parseInt(ls.get('unitGame_correct')||'0')+1;ls.set('unitGame_correct',c)}
+else{var w=parseInt(ls.get('unitGame_wrong')||'0')+1;ls.set('unitGame_wrong',w)}
+}catch(e){}
+
+// 异步保存到数据库（不阻塞跳转）
+saveRecordToDB(isCorrect,timeSpent);
+
+window.location.href=href
+}
+
+function formatNum(n){return parseFloat(n.toFixed(10)).toString()}
+function displayNum(n){n=Number(n);if(isNaN(n))return n;var r=Math.round(n*100)/100;var s=parseFloat(r.toFixed(2)).toString();if(Math.abs(r-n)>0.001)return '约'+s;return s}
+function generateProblem(){
+scenario=Math.floor(Math.random()*4);
+currentScenario=scenario;
+var sc=scenarios[scenario];
+if(grade===3){
+A=Math.floor(Math.random()*10)+3;
+B=Math.floor(Math.random()*7)+3;
+total=A*B;
+var divisors=[];
+for(var d=2;d<=12;d++){if(total%d===0&&d!==A&&d!==B){divisors.push(d)}}
+if(divisors.length===0){C=Math.floor(Math.random()*8)+2;while((total%C!==0||C===A||C===B)&&C<20){C++}}
+else{C=divisors[Math.floor(Math.random()*divisors.length)]}
+}
+else if(grade===4){
+A=Math.floor(Math.random()*18)+7;
+B=Math.floor(Math.random()*7)+3;
+total=A*B;
+var divisors4=[];
+for(var d=2;d<=20;d++){if(total%d===0&&d!==A&&d!==B){divisors4.push(d)}}
+if(divisors4.length===0){C=Math.floor(Math.random()*8)+2;while((total%C!==0||C===A||C===B)&&C<30){C++}}
+else{C=divisors4[Math.floor(Math.random()*divisors4.length)]}
+}
+else if(grade===5){
+A=Math.floor(Math.random()*50)+10;
+B=Math.floor(Math.random()*10)+3;
+total=A*B;
+var divisors5=[];
+for(var d=3;d<=30;d++){if(total%d===0&&d!==A&&d!==B){divisors5.push(d)}}
+if(divisors5.length===0){C=Math.floor(Math.random()*10)+3;while((total%C!==0||C===A||C===B)&&C<50){C++}}
+else{C=divisors5[Math.floor(Math.random()*divisors5.length)]}
+}
+else{
+A=Math.floor(Math.random()*80)+15;
+B=Math.floor(Math.random()*12)+5;
+total=A*B;
+var divisors6=[];
+for(var d=5;d<=50;d++){if(total%d===0&&d!==A&&d!==B){divisors6.push(d)}}
+if(divisors6.length===0){C=Math.floor(Math.random()*15)+5;while((total%C!==0||C===A||C===B)&&C<80){C++}}
+else{C=divisors6[Math.floor(Math.random()*divisors6.length)]}
+}
+total=A*B;
+if(C===A||C===B||total%C!==0){C=2;while(total%C!==0||C===A||C===B){C++}}
+ans=total/C;
+ls.set('unitGame2_A',A);ls.set('unitGame2_B',B);ls.set('unitGame2_C',C);
+ls.set('unitGame2_total',formatNum(total));ls.set('unitGame2_ans',formatNum(ans));
+ls.set('unitGame_grade',grade);ls.set('unitGame2_scenario',scenario);
+var questionTexts=[
+'小明每天看'+A+'页书，'+B+'天看完。如果改为每天看'+C+'页，几天能看完？',
+'小明每分钟走'+A+'米，'+B+'分钟到学校。如果改为每分钟走'+C+'米，需要几分钟？',
+'工厂每天生产'+A+'个零件，'+B+'天完成。如果改为每天生产'+C+'个，几天完成？',
+'小明每天写'+A+'个字，'+B+'天写完。如果改为每天写'+C+'个字，几天写完？'
+];
+var _qt=questionTexts[scenario];ls.set('unitGame2_qtext',_qt);
+var wrong1=A*B;
+var wrong2=B/C;
+var wrong3=A*C;
+options=[{val:ans,correct:true},{val:wrong1,correct:false},{val:wrong2,correct:false},{val:wrong3,correct:false}];
+
+var _seen={};var _uniq=[];
+for(var _i=0;_i<options.length;_i++){if(options[_i].val>0&&!_seen[options[_i].val]){_seen[options[_i].val]=true;_uniq.push(options[_i])}}
+var _off=1;
+while(_uniq.length<4){var _v=ans+_off;if(_v>0&&!_seen[_v]){_seen[_v]=true;_uniq.push({val:_v,correct:false})}if(_uniq.length<4){_v=ans-_off;if(_v>0&&!_seen[_v]){_seen[_v]=true;_uniq.push({val:_v,correct:false})}}_off++}
+options=_uniq;
+for(var i=options.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var tmp=options[i];options[i]=options[j];options[j]=tmp}
+var questionText=questionTexts[scenario];
+document.getElementById('questionBox').innerHTML='<div class="scenario-icon">'+sc.icon+'</div><p>'+questionText+'</p>';
+var html='';
+for(var k=0;k<options.length;k++){
+var opt=options[k];
+var href=opt.correct?'02-3.html':'02-2.html';
+var correctStr=opt.correct?'true':'false';
+html+='<a class="choice-btn" href="javascript:void(0)" onclick="answerClick('+correctStr+",'"+href+"'"+')"><span class="choice-value">'+displayNum(opt.val)+'</span></a>'
+}
+document.getElementById('choicesBox').innerHTML=html;
+document.getElementById('questionBox').style.display='block';
+document.getElementById('choicesBox').style.display='grid';
+_qText=questionText;var _auto=(new URLSearchParams(window.location.search)).get('auto')==='1';if(_auto){var _sb=document.getElementById('speechBtn');if(_sb)_sb.style.display='inline-block'}startSpeech(questionText);
+
+// 记录开始答题时间
+startTime=Date.now();
+}
+var _qText='';
+var playCount=0;
+function startSpeech(text){
+try{
+var synth=window.speechSynthesis;
+if(!synth){return}
+function speakOnce(){
+var utter=new SpeechSynthesisUtterance(text);
+utter.lang='zh-CN';utter.rate=0.85;utter.pitch=1.1;
+var voices=synth.getVoices();
+for(var i=0;i<voices.length;i++){if(voices[i].lang.indexOf('zh')===0){utter.voice=voices[i];break}}
+utter.onend=function(){playCount++;if(playCount<2){setTimeout(speakOnce,800)}};
+synth.speak(utter)
+}
+if(synth.getVoices().length>0){speakOnce()}else{synth.onvoiceschanged=function(){speakOnce()};setTimeout(function(){if(playCount===0)speakOnce()},1500)}
+}catch(e){}
+}
+var speechStarted=false;
+function enterGame(){
+if(speechStarted)return;
+speechStarted=true;
+try{
+grade=parseInt(ls.get('unitGame_grade'));
+if(!grade){window.location.href='index.html';return}
+document.getElementById('startArea').style.display='none';
+document.getElementById('mainContent').className='content-visible';
+updateStatsDisplay();
+generateProblem()
+}catch(e){document.getElementById('mainContent').className='content-visible'}
+}
+var urlParams=new URLSearchParams(window.location.search);
+if(urlParams.get('auto')==='1'){
+try{
+grade=parseInt(ls.get('unitGame_grade'));
+if(!grade){window.location.href='index.html'}
+else{
+speechStarted=true;
+document.getElementById('startArea').style.display='none';
+document.getElementById('mainContent').className='content-visible';
+updateStatsDisplay();
+generateProblem()
+}
+}catch(e){document.getElementById('mainContent').className='content-visible'}
+}else{
+setTimeout(function(){if(!speechStarted){try{var synth=window.speechSynthesis;if(synth&&synth.getVoices().length>0){enterGame()}}catch(e){}}},500)
+}
+function _manualSpeak(){var sb=document.getElementById('speechBtn');if(sb)sb.style.display='none';playCount=0;startSpeech(_qText)}
+</script>
+</body>
+</html>
