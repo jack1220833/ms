@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>英语聊天小达人-四年级手机版</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{height:100%;overflow:hidden;width:100%}
+body{height:100%;overflow:hidden;position:fixed;width:100%;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;background:#fffff0;color:#333}
+.wrap{min-height:100%;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:16px 16px 80px}
+.back{display:inline-block;padding:8px 14px;font-size:14px;color:#d69e2e;margin-bottom:12px;cursor:pointer;touch-action:manipulation}
+.top{text-align:center;margin-bottom:16px}
+.top h2{font-size:22px;color:#975a16}
+.scenarios{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;justify-content:center}
+.sc{background:#fff;border-radius:14px;padding:14px 10px;width:calc(33% - 10px);text-align:center;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,0.06);touch-action:manipulation}
+.sc:active{transform:scale(0.95)}
+.sc .icon{font-size:28px}
+.sc .name{font-size:12px;color:#718096;margin-top:4px}
+.chat{display:none}
+.msgs{margin-bottom:14px}
+.msg{margin-bottom:10px}
+.msg .bubble{display:inline-block;max-width:85%;padding:12px 16px;border-radius:16px;font-size:15px;line-height:1.5;word-break:break-word;-webkit-user-select:none;user-select:none;cursor:pointer;touch-action:manipulation}
+.msg .bubble:active{opacity:0.85}
+.msg.ai .bubble{background:#edf2f7;color:#2d3748;border-bottom-left-radius:4px}
+.msg.user .bubble{background:#fefcbf;color:#744210;border-bottom-right-radius:4px;float:right}
+.msg .label{font-size:11px;color:#a0aec0;margin-bottom:3px}
+.play-hint{background:#fefcbf;border:1px solid #f6e05e;border-radius:10px;padding:10px 14px;font-size:14px;color:#975a16;margin-bottom:10px;text-align:center;cursor:pointer;touch-action:manipulation;-webkit-user-select:none;user-select:none}
+.play-hint:active{background:#f6e05e}
+.opts{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+.opt{padding:14px 16px;border-radius:12px;background:#fff;border:2px solid #ecc94b;font-size:15px;cursor:pointer;touch-action:manipulation;line-height:1.4;word-break:break-word;-webkit-user-select:none;user-select:none}
+.opt:active{transform:scale(0.97)}
+.opt.right{border-color:#48bb78;background:#f0fff4;color:#276749}
+.opt.wrong{border-color:#fc8181;background:#fff5f5;color:#9b2c2c}
+.hintbox{background:#fffbeb;border:1px solid #f6e05e;border-radius:10px;padding:10px 14px;font-size:13px;color:#975a16;margin-bottom:10px;display:none}
+.done{background:#fff;border-radius:16px;padding:24px 18px;text-align:center;box-shadow:0 2px 12px rgba(0,0,0,0.08);display:none}
+.done h3{font-size:20px;margin-bottom:10px;color:#276749}
+.done p{font-size:14px;color:#718096;margin-bottom:14px;line-height:1.6}
+.done .bbtn{display:inline-block;padding:14px 30px;border-radius:30px;background:#d69e2e;color:#fff;font-size:16px;cursor:pointer;touch-action:manipulation}
+.done .bbtn:active{opacity:0.85}
+.brand{position:fixed;bottom:0;left:0;right:0;text-align:center;padding:12px;font-size:12px;font-weight:bold;color:#000;background:rgba(255,255,255,0.95)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="back" onclick="goHome()">← 返回首页</div>
+<div class="top"><h2>💬 英语聊天小达人</h2></div>
+<div class="scenarios" id="scList"></div>
+<div class="chat" id="chatArea">
+<div class="msgs" id="msgs"></div>
+<div class="play-hint" id="playHint" style="display:none" onclick="playCurrentAI()">🔊 点击播放对方说的话</div>
+<div class="hintbox" id="hintBox"></div>
+<div class="opts" id="optsBox"></div>
+</div>
+<div class="done" id="doneBox">
+<h3 id="doneH"></h3>
+<p id="doneP"></p>
+<div class="bbtn" onclick="backToList()">选其他场景</div>
+</div>
+</div>
+<div class="brand">眉山苏启儿 微信同号 19950525152</div>
+<script>
+var SCENARIOS=[
+{name:"能力比拼",icon:"🏃",unit:"U1",rounds:[
+{ai:"Do you like playing sports?",opts:["Yes, I do.","Yes, I am.","Yes, I can."],ans:0,hint:"用do回答Do you..."},
+{ai:"Can you jump high?",opts:["Yes, I can.","Yes, I do.","Yes, I am."],ans:0,hint:"用can回答Can you..."},
+{ai:"I can run and swim.",opts:["Can you swim fast?","Do you swim fast?","Are you swim fast?"],ans:0,hint:"问能力用Can"},
+{ai:"Can you play ping-pong?",opts:["No, I can't.","No, I don't.","No, I amn't."],ans:0,hint:"用can't回答Can you...?"},
+{ai:"But I can learn.",opts:["Wow! You can swim fast!","Wow! You swimming fast!","Wow! Do you can swim fast!"],ans:0,hint:"用can+动词原形"}
+]},
+{name:"天气播报",icon:"🌤️",unit:"U2",rounds:[
+{ai:"What's the weather like today?",opts:["It's sunny.","It's sun.","It suns."],ans:0,hint:"描述天气用It's+形容词"},
+{ai:"Is it cold in winter?",opts:["Yes, it is.","Yes, it does.","Yes, it can."],ans:0,hint:"用is回答Is it...?"},
+{ai:"It's warm in spring.",opts:["I like spring.","I like springing.","I likes spring."],ans:0,hint:"like+名词"},
+{ai:"Does it rain in summer?",opts:["Yes, it does.","Yes, it is.","Yes, it can."],ans:0,hint:"用does回答Does it...?"},
+{ai:"It's hot today.",opts:["Let's go swimming!","Let's goes swimming!","Let's going swimming!"],ans:0,hint:"Let's+动词原形"}
+]},
+{name:"节日快乐",icon:"🎉",unit:"U3",rounds:[
+{ai:"Happy New Year!",opts:["Happy New Year!","Happy new year!","Happy New Years!"],ans:0,hint:"新年快乐用Happy New Year"},
+{ai:"What do you do on Spring Festival?",opts:["We have a big family dinner.","We has a big family dinner.","We having a big family dinner."],ans:0,hint:"we用动词原形"},
+{ai:"We eat dumplings.",opts:["Yummy! I like dumplings!","Yummy! I likes dumplings!","Yummy! I liking dumplings!"],ans:0,hint:"I用like"},
+{ai:"Do you like Christmas?",opts:["Yes, I do.","Yes, I am.","Yes, I can."],ans:0,hint:"用do回答Do you...?"},
+{ai:"We give presents.",opts:["That's nice!","That nice!","That are nice!"],ans:0,hint:"That's=That is"}
+]},
+{name:"礼物惊喜",icon:"🎁",unit:"U4",rounds:[
+{ai:"What can I do for Mum?",opts:["You can make a card.","You can making a card.","You can makes a card."],ans:0,hint:"can+动词原形"},
+{ai:"I can draw a picture.",opts:["That's a good idea!","That a good idea!","That are a good idea!"],ans:0,hint:"That's=That is"},
+{ai:"Can I have some sweets?",opts:["Yes, you can.","Yes, you do.","Yes, you are."],ans:0,hint:"用can回答Can I...?"},
+{ai:"Here's a present for you.",opts:["Thank you!","Thanks you!","Thanking you!"],ans:0,hint:"谢谢用Thank you"},
+{ai:"I can sing a song.",opts:["Wonderful!","Wonderfully!","Wonderfuling!"],ans:0,hint:"形容词作感叹"}
+]},
+{name:"出行计划",icon:"🚌",unit:"U5",rounds:[
+{ai:"How do you go to school?",opts:["I go by bike.","I goes by bike.","I going by bike."],ans:0,hint:"I用go"},
+{ai:"Let's go by bus.",opts:["OK! Let's go!","OK! Let's goes!","OK! Let's going!"],ans:0,hint:"Let's+动词原形"},
+{ai:"Where is the park?",opts:["It's next to the library.","It next to the library.","Its next to the library."],ans:0,hint:"用It's=It is"},
+{ai:"We go there by bus.",opts:["That's great!","That great!","That are great!"],ans:0,hint:"That's=That is"},
+{ai:"It's a green way.",opts:["Good idea!","Good ideas!","Good ideaing!"],ans:0,hint:"idea是可数名词单数"}
+]},
+{name:"问路指路",icon:"🗺️",unit:"U6",rounds:[
+{ai:"Excuse me. Where is the museum?",opts:["Go straight on.","Go straightly on.","Going straight on."],ans:0,hint:"祈使句用动词原形"},
+{ai:"Turn left at the library.",opts:["Thank you very much!","Thanks you very much!","Thanking you very much!"],ans:0,hint:"谢谢用Thank you"},
+{ai:"Where is the hospital?",opts:["It's behind the park.","It behind the park.","Its behind the park."],ans:0,hint:"用It's=It is"},
+{ai:"Can you tell me the way to the cinema?",opts:["Turn right at the corner.","Turns right at the corner.","Turning right at the corner."],ans:0,hint:"祈使句用动词原形"},
+{ai:"Walk along this road.",opts:["You're so brave!","You're so bravely!","Your so brave!"],ans:0,hint:"用brave形容词"}
+]},
+{name:"北风和太阳",icon:"🌬️",unit:"U7",rounds:[
+{ai:"I'm the Wind. I'm very strong!",opts:["I'm the Sun. I'm strong too!","I'm a Sun. I'm strong too!","I are the Sun. I'm strong too!"],ans:0,hint:"I'm=I am"},
+{ai:"Can you blow his coat off?",opts:["Yes, I can try!","Yes, I do try!","Yes, I am try!"],ans:0,hint:"用can回答"},
+{ai:"I blow and blow. But he holds his coat.",opts:["Let me try!","Let me trying!","Let me tries!"],ans:0,hint:"Let me+动词原形"},
+{ai:"The man is cold. He holds his coat tight.",opts:["I shine and shine. It's warm now!","I shining and shining. It warm now!","I shines and shines. It are warm now!"],ans:0,hint:"I用shine"},
+{ai:"The man takes off his coat!",opts:["You win! You are stronger!","You wins! You are stronger!","You winning! You stronger!"],ans:0,hint:"You用win"}
+]},
+{name:"雪孩子",icon:"⛄",unit:"U8",rounds:[
+{ai:"Hello. I'm Snow Kid.",opts:["Hello! I'm Little Rabbit.","Hello! I am a Little Rabbit.","Hello! I are Little Rabbit."],ans:0,hint:"I'm=I am"},
+{ai:"Let's play together!",opts:["OK! Let's play!","OK! Let's plays!","OK! Let's playing!"],ans:0,hint:"Let's+动词原形"},
+{ai:"It's getting warm. I'm melting.",opts:["Oh no! What can I do?","Oh no! What I can do?","Oh no! What does I do?"],ans:0,hint:"疑问词+can+I+动词"},
+{ai:"Don't worry. I'm still your friend.",opts:["Thank you, Snow Kid!","Thanks you, Snow Kid!","Thanking you, Snow Kid!"],ans:0,hint:"谢谢用Thank you"},
+{ai:"I can fly in the sky now!",opts:["Goodbye, my friend!","Goodbyes, my friend!","Goodbying, my friend!"],ans:0,hint:"Goodbye不变"}
+]},
+{name:"乡下老鼠进城",icon:"🐭",unit:"U9",rounds:[
+{ai:"Hello! I'm Martin. I live in the city.",opts:["Hello! I'm Country Mouse.","Hello! I am a Country Mouse.","Hello! I are Country Mouse."],ans:0,hint:"I'm=I am"},
+{ai:"Come to the city! It's great!",opts:["OK! Let's go!","OK! Let's goes!","OK! Let's going!"],ans:0,hint:"Let's+动词原形"},
+{ai:"There are many cars in the city.",opts:["Oh! It's so noisy!","Oh! It so noisy!","Oh! Its so noisy!"],ans:0,hint:"用It's=It is"},
+{ai:"Be careful! A cat is coming!",opts:["Run! Run! Run!","Runs! Runs! Runs!","Running! Running! Running!"],ans:0,hint:"祈使句用动词原形"},
+{ai:"I want to go home.",opts:["Home is best!","Home are best!","Homes is best!"],ans:0,hint:"Home是抽象名词用单数"}
+]}
+];
+var curScene=null,curRound=0,rightCount=0;
+var currentAIText='';
+
+var useOnlineTTS=true;
+
+function playTTS(txt,cb){
+  var au=new Audio();
+  if(useOnlineTTS){
+    var url='https://dict.youdao.com/dictvoice?audio='+encodeURIComponent(txt)+'&type=2';
+    au.src=url;
+    au.onended=function(){if(cb)cb()};
+    au.onerror=function(){useOnlineTTS=false;speakBrowser(txt,cb)};
+    au.play().catch(function(){useOnlineTTS=false;speakBrowser(txt,cb)});
+  }else{
+    speakBrowser(txt,cb);
+  }
+}
+
+function speakBrowser(txt,cb){
+  if(!('speechSynthesis' in window)){if(cb)cb();return}
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(txt);u.lang='en-US';u.rate=0.65;u.volume=1.0;
+  var vv=getBestVoice();if(vv)u.voice=vv;
+  if(cb){u.onend=cb;u.onerror=cb}
+  speechSynthesis.speak(u);
+}
+
+var voices=[],voicesReady=false;
+function getBestVoice(){
+  if(!voicesReady||!voices.length)return null;
+  var pri=['google','samsung','huawei','xiaomi','microsoft'];
+  for(var p=0;p<pri.length;p++){for(var i=0;i<voices.length;i++){if(voices[i].name.toLowerCase().indexOf(pri[p])>-1&&voices[i].lang.toLowerCase().indexOf('en')>-1)return voices[i]}}
+  for(var i=0;i<voices.length;i++){if(voices[i].lang.toLowerCase().indexOf('en')>-1)return voices[i]}
+  return voices[0]||null;
+}
+if('speechSynthesis' in window){function cv(){var v=window.speechSynthesis.getVoices();if(v.length){voices=v;voicesReady=true}}cv();window.speechSynthesis.onvoiceschanged=cv}
+
+function goHome(){location.href='index.html'}
+
+function renderList(){
+  var box=document.getElementById('scList');box.innerHTML='';
+  for(var i=0;i<SCENARIOS.length;i++){
+    var sc=SCENARIOS[i];
+    var d=document.createElement('div');d.className='sc';
+    d.innerHTML='<div class="icon">'+sc.icon+'</div><div class="name">'+sc.name+'</div>';
+    d.setAttribute('data-idx',i);
+    bindTap(d,function(e){var idx=parseInt(e.currentTarget.getAttribute('data-idx'));startChat(idx)});
+    box.appendChild(d);
+  }
+}
+
+function bindTap(el,fn){
+  var locked=false;
+  el.addEventListener('touchend',function(e){if(locked)return;locked=true;e.preventDefault();fn(e);setTimeout(function(){locked=false},350)},{passive:false});
+  el.addEventListener('click',function(e){if(locked)return;locked=true;fn(e);setTimeout(function(){locked=false},350)});
+}
+
+function startChat(idx){
+  curScene=SCENARIOS[idx];curRound=0;rightCount=0;
+  document.getElementById('scList').style.display='none';
+  document.getElementById('chatArea').style.display='block';
+  document.getElementById('doneBox').style.display='none';
+  document.getElementById('msgs').innerHTML='';
+  nextRound();
+}
+
+function nextRound(){
+  if(curRound>=curScene.rounds.length){showDone();return}
+  var r=curScene.rounds[curRound];
+  currentAIText=r.ai;
+  addMsg('ai',r.ai);
+  document.getElementById('playHint').style.display='block';
+  var box=document.getElementById('optsBox');box.innerHTML='';
+  document.getElementById('hintBox').style.display='none';
+  for(var i=0;i<r.opts.length;i++){
+    var d=document.createElement('div');d.className='opt';d.textContent=r.opts[i];d.setAttribute('data-i',i);
+    bindTap(d,function(e){var ci=parseInt(e.currentTarget.getAttribute('data-i'));pickOpt(ci,e.currentTarget)});
+    box.appendChild(d);
+  }
+}
+
+function playCurrentAI(){
+  if(currentAIText){
+    document.getElementById('playHint').style.display='none';
+    playTTS(currentAIText);
+  }
+}
+
+function addMsg(type,txt){
+  var box=document.getElementById('msgs');
+  var d=document.createElement('div');d.className='msg '+type;
+  var label=document.createElement('div');label.className='label';label.textContent=type==='ai'?'🤖 点击重听':'🙋';
+  var bubble=document.createElement('div');bubble.className='bubble';bubble.textContent=txt;
+  if(type==='ai'){
+    bubble.onclick=function(){playTTS(txt)};
+  }
+  d.appendChild(label);d.appendChild(bubble);box.appendChild(d);box.scrollTop=box.scrollHeight;
+}
+
+function pickOpt(ci,el){
+  var r=curScene.rounds[curRound];
+  var isRight=(ci===r.ans);
+  if(isRight){rightCount++;el.classList.add('right');addMsg('user',r.opts[ci])}
+  else{el.classList.add('wrong');document.getElementById('hintBox').style.display='block';document.getElementById('hintBox').textContent='💡 '+r.hint;
+    var opts=document.querySelectorAll('.opt');opts[r.ans].classList.add('right');addMsg('user',r.opts[r.ans])}
+  curRound++;setTimeout(nextRound,1200);
+}
+
+function showDone(){
+  document.getElementById('chatArea').style.display='none';document.getElementById('doneBox').style.display='block';
+  var total=curScene.rounds.length;
+  document.getElementById('doneH').textContent=rightCount===total?'🎉 全部答对！':'😊 完成对话！';
+  document.getElementById('doneP').textContent='正确 '+rightCount+'/'+total+'，'+curScene.icon+' '+curScene.name;
+}
+
+function backToList(){
+  document.getElementById('scList').style.display='flex';
+  document.getElementById('chatArea').style.display='none';
+  document.getElementById('doneBox').style.display='none';
+}
+
+renderList();
+
+var vh=window.innerHeight;document.documentElement.style.height=vh+'px';document.querySelector('.wrap').style.height=vh+'px';
+var lastH=vh;
+window.addEventListener('resize',function(){var n=window.innerHeight;if(Math.abs(n-lastH)>100){lastH=n;document.documentElement.style.height=n+'px';document.querySelector('.wrap').style.height=n+'px'}});
+</script>
+</body>
+</html>
