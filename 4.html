@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>听录音选句子 - 四年级英语</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:linear-gradient(135deg,#4facfe,#00f2fe);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:10px}
+.box{background:#fff;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;min-height:90vh;display:flex;flex-direction:column}
+h1{font-size:24px;color:#2196F3;margin-bottom:4px}
+.sub{font-size:14px;color:#888;margin-bottom:16px}
+.big-btn{display:block;width:100%;padding:20px;border:none;border-radius:16px;font-size:22px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;box-shadow:0 6px 20px rgba(79,172,254,.4);margin:12px 0;touch-action:manipulation;-webkit-touch-callout:none}
+.big-btn:active{transform:scale(.95);opacity:.85}
+.score-bar{display:flex;justify-content:space-around;background:#e8f4ff;border-radius:12px;padding:8px;margin:8px 0}
+.score-item{text-align:center}
+.score-label{font-size:12px;color:#888}
+.score-num{font-size:20px;font-weight:700;color:#2196F3}
+.prog{font-size:13px;color:#888;margin-bottom:8px}
+.tag{display:inline-block;background:#e8f4ff;color:#2196F3;padding:3px 10px;border-radius:20px;font-size:12px;margin-bottom:8px}
+.play-txt{font-size:20px;color:#2196F3;font-weight:700;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.hint{font-size:13px;color:#999;margin-top:6px}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.replay-btn{padding:12px 20px;border:2px solid #2196F3;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;background:#fff;color:#2196F3;touch-action:manipulation;-webkit-touch-callout:none}
+.replay-btn:active{transform:scale(.95);opacity:.85}
+.next-btn{padding:12px 24px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#4facfe,#00f2fe);color:#fff;box-shadow:0 4px 15px rgba(79,172,254,.3);touch-action:manipulation;-webkit-touch-callout:none}
+.next-btn:active{transform:scale(.95);opacity:.85}
+.opts{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.opt{padding:14px;border:2px solid #d4e8ff;border-radius:12px;font-size:15px;background:#f5faff;cursor:pointer;text-align:left;line-height:1.4;touch-action:manipulation;-webkit-touch-callout:none}
+.opt:active{transform:scale(.97);opacity:.85}
+.opt.ok{background:#d4edda;border-color:#28a745;color:#155724;font-weight:700}
+.opt.no{background:#f8d7da;border-color:#dc3545;color:#721c24}
+.opt.off{pointer-events:none;opacity:.7}
+.wrong-txt{font-size:18px;color:#e74c3c;font-weight:700;margin:10px 0}
+.result-box{background:#e8f4ff;border-radius:14px;padding:16px;margin:12px 0}
+.result-detail{font-size:14px;color:#666;margin-top:6px;line-height:1.6}
+.final-msg{font-size:20px;color:#2196F3;font-weight:700;line-height:1.6;margin:16px 0}
+.back-btn{padding:8px 18px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;margin-top:8px;color:#666;touch-action:manipulation;-webkit-touch-callout:none}
+.hide{display:none!important}
+.brand{margin-top:auto;padding-top:14px;border-top:1px solid #eee;color:#000;font-size:18px;font-weight:700;letter-spacing:1px;-webkit-user-select:none;user-select:none}
+</style>
+</head>
+<body>
+<div class="box">
+
+  <!-- 首页 -->
+  <div id="pgHome">
+    <h1>🎧 听录音选句子</h1>
+    <div class="sub">四年级 · 30题</div>
+    <button class="big-btn" id="btnStart">▶ 开始</button>
+      <button class="back-btn" onclick="window.location.href='index.html'" style="margin-top:10px;padding:8px 18px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;color:#666;touch-action:manipulation;-webkit-touch-callout:none">&larr; 返回总首页</button>
+    <div style="font-size:11px;color:#aaa;margin-top:6px">🔊 建议使用Chrome浏览器以获得最佳英语发音</div>
+  </div>
+
+  <!-- 播放页 -->
+  <div id="pgPlay" class="hide">
+    <div class="prog" id="prog1"></div>
+    <div class="tag" id="tag1"></div>
+    <div class="play-txt" id="playSt">🔊 正在播放录音...</div>
+    <div class="hint" id="playHint">请仔细听，录音将播放两遍</div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc1">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa1">0</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="replay-btn" id="btnReplay">🔄 再听一遍</button>
+      <button class="next-btn hide" id="btnNext">下一步 →</button>
+    </div>
+    <button class="back-btn" id="btnHome1">← 返回首页</button>
+  </div>
+
+  <!-- 选项页 -->
+  <div id="pgOpt" class="hide">
+    <div class="prog" id="prog2"></div>
+    <div class="tag" id="tag2"></div>
+    <div style="font-size:15px;color:#2196F3;font-weight:600;margin-bottom:8px">选出你听到的句子：</div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc2">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa2">0</div></div>
+    </div>
+    <div class="opts" id="optsBox"></div>
+  </div>
+
+  <!-- 答错提示 -->
+  <div id="pgWrong" class="hide">
+    <div class="prog" id="prog3"></div>
+    <div class="wrong-txt">😊 再听听</div>
+    <div style="font-size:14px;color:#666;margin:8px 0">正确答案：<strong id="ansCorrect"></strong></div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc3">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa3">0</div></div>
+    </div>
+  </div>
+
+  <!-- 结束页 -->
+  <div id="pgFinal" class="hide">
+    <h2 style="margin:16px 0 8px">🎉 本轮结束</h2>
+    <div class="result-box">
+      <div class="final-msg" id="finalMsg"></div>
+      <div class="result-detail" id="finalDetail"></div>
+    </div>
+    <button class="big-btn" id="btnHome2">返回首页</button>
+  </div>
+
+  <div class="brand">眉山苏启儿 19950525152 微信同号</div>
+</div>
+
+<script>
+var GRADE=4, TOTAL=30, RATE=0.6;
+var qs=[], idx=0, okCnt=0, ansCnt=0, firstOk=true, curQ=null;
+
+// ========== 触摸安全按钮绑定 ==========
+var _tapLock=0;
+function bindTap(el,fn){
+  function go(){var now=Date.now();if(now-_tapLock<300)return;_tapLock=now;fn();}
+  el.addEventListener('touchend',function(e){e.preventDefault();go();},{passive:false});
+  el.addEventListener('click',function(){go();});
+}
+
+// ========== 词库 ==========
+var W={
+name:['Sam','Amy','Lingling','Daming','Tom','Ms Smart','Mr Li','Billy','Lily','Peter','Lucy','John'],
+class_item:['door','window','desk','chair','book','pen','pencil','bag','ruler','blackboard','board','picture','map','computer'],
+color:['red','blue','yellow','green','black','white','orange','pink','purple','brown','golden','silver'],
+num:['one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve','thirteen','fourteen','fifteen','twenty'],
+age:['seven','eight','nine','ten','eleven','twelve','thirteen','fourteen'],
+animal_s:['cats','dogs','rabbits','pandas','monkeys','birds','tigers','lions','bears','ducks','horses','pigs','chickens','elephants','giraffes','zombies'],
+animal_a:['cat','dog','rabbit','panda','monkey','bird','tiger','lion','bear','duck','horse','pig','chicken','elephant','giraffe','zombie'],
+family:['mother','father','brother','sister','grandma','grandpa','uncle','aunt','parent','friend'],
+job:['doctor','nurse','teacher','driver','farmer','policeman','pupil','worker','singer','artist'],
+body_g3:['head','arm','leg','hand','foot','nose','mouth','eye','ear','face','hair','tooth','teeth'],
+food:['rice','noodles','bread','milk','cake','fish','meat','chicken','soup','hamburger','pizza','sandwich','hot dog','egg','tomato','potato'],
+fruit_s:['apples','bananas','oranges','pears','grapes','eggs','cakes','dumplings','sandwiches','hot dogs','tomatoes','potatoes','carrots'],
+fruit_a:['an apple','a banana','an orange','a pear','a cake','an egg','a dumpling','a sandwich','a hot dog','a hamburger','a tomato','a potato','a carrot'],
+prep_place:['in the bag','on the desk','under the chair','in the box','on the bed','under the book','on the floor','in the classroom'],
+sport:['football','basketball','table tennis','badminton','volleyball','tennis','swimming','running','riding'],
+time:["seven o'clock","half past seven","eight thirty","nine fifteen","twelve o'clock","ten o'clock","quarter past eight","quarter to nine","half past six","five o'clock"],
+place_in:['the classroom','the library','the zoo','the park','the supermarket','the kitchen','the bedroom','the office','the museum','the cinema','hospital','the Great Wall','the restaurant'],
+place_at:['home','school','the station','the bus stop','the beach','the farm','the hospital','the shop','the restaurant','the station'],
+place_on:['the playground','the bus','the farm','the street','the bridge','the floor','the wall','the table'],
+clothes:['coat','shirt','dress','hat','T-shirt','skirt','sweater','jacket','scarf','jeans','cap','glove','gloves','socks','shoes'],
+clothes_p:['shoes','trousers','shorts','socks','gloves','jeans','pants','glasses'],
+day:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday','weekend','holiday'],
+feel:['happy','sad','tired','excited','hungry','thirsty','angry','worried','surprised','bored','scared','proud','ill'],
+feel_about:['happy','excited','worried','angry','surprised','sad','proud'],
+weather:['sunny','cloudy','rainy','windy','snowy','warm','cool','hot','cold','foggy','snowy'],
+transport:['bus','bike','car','subway','taxi','train','plane','ship','boat'],
+season:['spring','summer','autumn','winter'],
+subject:['English','Chinese','math','maths','music','art','PE','science','history','geography'],
+drink:['water','juice','milk','tea','cola','coffee','soup'],
+room:['bedroom','kitchen','bathroom','living room','dining room','study','classroom','hall','garden'],
+body:['head','tooth','teeth','stomach','ear','back','face','neck','shoulder','arm','hand','finger'],
+big_animal:['elephant','bear','tiger','lion','horse','cow','giraffe','zebra','monkey','panda','snake'],
+small_animal:['cat','dog','rabbit','bird','duck','mouse','fish','ant','bee','butterfly'],
+weather_adj:['warm','hot','cool','cold','sunny','windy','rainy','cloudy','snowy','bright'],
+adj_person:['nice','clever','cool','naughty','cute','shy','quiet','friendly','kind','lovely','funny','clever','helpful','clever','friendly','polite'],
+place_city:['the park','the library','the cinema','the hospital','the museum','the zoo','the school','the supermarket','the station','the restaurant','the museum','the palace'],
+place_city2:['the park','the library','the cinema','the hospital','the museum','the zoo','the school','the shop','the station','the restaurant','the museum','the church','the post office'],
+food_uncount:['rice','bread','milk','meat','fish','soup','juice','water','coffee','tea','sugar','salt'],
+food_count:['hamburger','hot dog','sandwich','pizza','cake','cookie','biscuit','egg','tomato','potato','carrot','banana','apple','orange'],
+city:['Beijing','Shanghai','London','New York','Sydney','Harbin','Tokyo','Paris','Hong Kong','Guangzhou'],
+adj_old:['short','young','small','weak','thin','old','slow'],
+adj_new:['tall','old','big','strong','fat','fast','new','young'],
+activity:['reading','writing','playing','singing','dancing','drawing','running','swimming','eating','drinking','watching','listening','riding','walking','cooking','cleaning','helping'],
+nationality:['Chinese','American','British','Japanese','French','German','Australian','Canadian','Russian','Indian'],
+  animal:['horse','sheep','cat','panda','chicken','bear','pig'],
+  animal2:['horse','sheep','cat','panda','chicken','bear','pig'],
+  animal_pl:['horses','sheep','cats','pandas','chickens','bears','pigs'],
+  animal_pl2:['horses','sheep','cats','pandas','chickens','bears','pigs'],
+  num_adj:['three','five','seven','twelve','eleven'],
+  num_adj2:['three','four','six','ten','eleven'],
+  food:['fruit','vegetables','rice','sweets'],
+  food2:['fruit and vegetables','rice and vegetables','fruit and sweets'],
+  place_trip:['Hainan','the zoo','the park','the Great Wall','grandma'],
+  family2:['grandpa','grandma','aunt','uncle','cousin'],
+  animal_ride:['horse','boat','bike'],
+  activity2:['bed','school','lunch','dinner','breakfast'],
+  race:['100','200','400'],
+  sport2:['high jump','long jump']
+};
+
+// ========== 动词 ==========
+var VB=[
+  {b:'swim',i:'swimming',s:'swims',p:'swam',loc:'outdoor'},
+  {b:'run',i:'running',s:'runs',p:'ran',loc:'outdoor'},
+  {b:'dance',i:'dancing',s:'dances',p:'danced',loc:'indoor'},
+  {b:'sing',i:'singing',s:'sings',p:'sang',loc:'indoor'},
+  {b:'draw',i:'drawing',s:'draws',p:'drew',loc:'indoor'},
+  {b:'cook',i:'cooking',s:'cooks',p:'cooked',loc:'indoor'},
+  {b:'read',i:'reading',s:'reads',p:'read',loc:'indoor'},
+  {b:'write',i:'writing',s:'writes',p:'wrote',loc:'indoor'},
+  {b:'play',i:'playing',s:'plays',p:'played',loc:'any'},
+  {b:'jump',i:'jumping',s:'jumps',p:'jumped',loc:'outdoor'},
+  {b:'eat',i:'eating',s:'eats',p:'ate',loc:'indoor'},
+  {b:'drink',i:'drinking',s:'drinks',p:'drank',loc:'indoor'},
+  {b:'walk',i:'walking',s:'walks',p:'walked',loc:'outdoor'},
+  {b:'clean',i:'cleaning',s:'cleans',p:'cleaned',loc:'indoor'},
+  {b:'wash',i:'washing',s:'washes',p:'washed',loc:'indoor'},
+  {b:'ride',i:'riding',s:'rides',p:'rode',loc:'outdoor'},
+  {b:'fly',i:'flying',s:'flies',p:'flew',loc:'outdoor'},
+  {b:'take',i:'taking',s:'takes',p:'took',loc:'any'},
+  {b:'go',i:'going',s:'goes',p:'went',loc:'any'},
+  {b:'come',i:'coming',s:'comes',p:'came',loc:'any'},
+  {b:'see',i:'seeing',s:'sees',p:'saw',loc:'any'},
+  {b:'buy',i:'buying',s:'buys',p:'bought',loc:'any'},
+  {b:'get',i:'getting',s:'gets',p:'got',loc:'any'},
+  {b:'have',i:'having',s:'has',p:'had',loc:'any'},
+  {b:'watch',i:'watching',s:'watches',p:'watched',loc:'indoor'},
+  {b:'listen',i:'listening',s:'listens',p:'listened',loc:'indoor'},
+  {b:'help',i:'helping',s:'helps',p:'helped',loc:'any'}
+];
+var VB_STATE=[
+  {b:'live',s:'lives',i:'living',p:'lived'},
+  {b:'work',s:'works',i:'working',p:'worked'},
+  {b:'study',s:'studies',i:'studying',p:'studied'},
+  {b:'teach',s:'teaches',i:'teaching',p:'taught'},
+  {b:'stay',s:'stays',i:'staying',p:'stayed'},
+  {b:'like',s:'likes',i:'liking',p:'liked'},
+  {b:'love',s:'loves',i:'loving',p:'loved'},
+  {b:'want',s:'wants',i:'wanting',p:'wanted'},
+  {b:'need',s:'needs',i:'needing',p:'needed'},
+  {b:'hope',s:'hopes',i:'hoping',p:'hoped'}
+];
+var VLOC={
+  indoor:{place_in:['the classroom','the library','the kitchen','the bedroom','the office','the supermarket','the museum','the cinema','hospital'],place_at:['home','school','the hospital','the shop','the restaurant'],place_on:['the floor','the bus'],room:['bedroom','kitchen','living room','dining room','study','classroom']},
+  outdoor:{place_in:['the park','the zoo','the museum','the cinema'],place_at:['the beach','the farm','the station','the bus stop','school','the park'],place_on:['the playground','the street','the bridge'],room:[]}
+};
+
+// ========== 四年级模板 ==========
+var TL4=[
+  // ========== 天气与季节（5题） ==========
+  {cat:'天气',t:"It's {weather} today.",e:["It {weather} today.","Its {weather} today.","It are {weather} today."],v:['weather']},
+  {cat:'天气',t:"It's {weather_adj} in {season}.",e:["It {weather_adj} in {season}.","It's {weather_adj} on {season}.","It's {weather_adj} at {season}."],v:['weather_adj','season']},
+  {cat:'天气',t:"What's the weather like today?",d:["What the weather like today?","How's the weather today?","What's the weather like tomorrow?"]},
+  {cat:'天气',t:"I like {season} because it's {weather_adj}.",e:["I like {season} because it {weather_adj}.","I likes {season} because it's {weather_adj}.","I like {season} because is {weather_adj}."],v:['season','weather_adj']},
+  {cat:'天气',t:"It will be {weather} tomorrow.",e:["It will {weather} tomorrow.","It will be {weather} tomorrow.","It's will be {weather} tomorrow."],v:['weather']},
+
+  // ========== 衣物描述（4题） ==========
+  {cat:'衣物',t:"She is wearing a {clothes}.",e:["She wearing a {clothes}.","She is wear a {clothes}.","She wears a {clothes}."],v:['clothes']},
+  {cat:'衣物',t:"He has got a new {clothes}.",e:["He have got a new {clothes}.","He has get a new {clothes}.","He got a new {clothes}."],v:['clothes']},
+  {cat:'衣物',t:"These are my {clothes_p}.",e:["These is my {clothes_p}.","These are my {clothes}.","This are my {clothes_p}."],v:['clothes_p']},
+  {cat:'衣物',t:"Put on your {clothes}, please.",e:["Put on you {clothes}, please.","Puts on your {clothes}, please.","Put on your {clothes_p}, please."],v:['clothes']},
+
+  // ========== 能力表达 can/can't（4题） ==========
+  {cat:'能力',t:"I can {vbase} well.",e:["I cans {vbase} well.","I can {vbase} good.","I can {ving} well."],v:['verb']},
+  {cat:'能力',t:"I can't {vbase}.",e:["I cannot {vbase}.","I can't {ving}.","I don't can {vbase}."],v:['verb']},
+  {cat:'能力',t:"Can you {vbase}? Yes, I can.",e:["Can you {vbase}? Yes, I can.","Can you {vbase}? Yes, you can.","Do you can {vbase}? Yes, I can."],v:['verb']},
+  {cat:'能力',t:"Can you {vbase}? No, I can't.",e:["Can you {vbase}? No, I cannot.","Can you {ving}? No, I can't.","Does you can {vbase}? No, I can't."],v:['verb']},
+
+  // ========== 拥有表达 have got（4题） ==========
+  {cat:'拥有',t:"I've got a new {clothes}.",e:["I have got a new {clothes}.","I've got new {clothes}.","I've get a new {clothes}."],v:['clothes']},
+  {cat:'拥有',t:"Have you got a {animal_a}? Yes, I have.",e:["Have you got a {animal_a}? Yes, I do.","Have you got {animal_a}? Yes, I have.","Do you have got a {animal_a}? Yes, I have."],v:['animal_a']},
+  {cat:'拥有',t:"She has got a new {class_item}.",e:["She have got a new {class_item}.","She has got new {class_item}.","She got a new {class_item}."],v:['class_item']},
+  {cat:'拥有',t:"They haven't got any {fruit_s}.",e:["They don't have got any {fruit_s}.","They haven't got some {fruit_s}.","They has not got any {fruit_s}."],v:['fruit_s']},
+
+  // ========== 方向与位置（3题） ==========
+  {cat:'方向',t:'Turn left.',d:['Turn to left.','Turn right.','Turn left please.']},
+  {cat:'方向',t:'Turn right.',d:['Turn to right.','Turn left.','Turn right please.']},
+  {cat:'方向',t:'Go straight on.',d:['Go straight.','Go straightly on.','Going straight on.']},
+
+  // ========== 日常活动/现在进行时（5题） ==========
+  {cat:'进行时',t:"She is {ving} in the {room}.",e:["She {ving} in the {room}.","She is {vbase} in the {room}.","She are {ving} in the {room}."],v:['ving','room']},
+  {cat:'进行时',t:"They are {ving} at {place_at}.",e:["They is {ving} at {place_at}.","They are {vbase} at {place_at}.","They are {ving} in {place_at}."],v:['ving','place_at']},
+  {cat:'进行时',t:"What are you doing? I'm {ving}.",e:["What are you doing? I {ving}.","What are you doing? I'm {vbase}.","What you are doing? I'm {ving}."],v:['ving']},
+  {cat:'进行时',t:"He is {ving} now.",e:["He {ving} now.","He is {vbase} now.","He are {ving} now."],v:['ving']},
+  {cat:'进行时',t:"We are {ving} at {time}.",e:["We is {ving} at {time}.","We are {vbase} at {time}.","We are {ving} on {time}."],v:['ving','time']},
+
+  // ========== 简单过去时（4题） ==========
+  {cat:'过去时',t:"I went to {place_in} yesterday.",e:["I go to {place_in} yesterday.","I goed to {place_in} yesterday.","I went {place_in} yesterday."],v:['place_in']},
+  {cat:'过去时',t:"She {vpast} last {day}.",e:["She {vbase} last {day}.","She {vs} last {day}.","She {ving} last {day}."],v:['vstate']},
+  {cat:'过去时',t:"Did you {vbase} yesterday? Yes, I did.",e:["Did you {vbase} yesterday? Yes, I do.","Do you {vbase} yesterday? Yes, I did.","Did you {ving} yesterday? Yes, I did."],v:['verb']},
+  {cat:'过去时',t:"Did you {vbase} yesterday? No, I didn't.",e:["Did you {vbase} yesterday? No, I don't.","Do you {vbase} yesterday? No, I didn't.","Did you {ving} yesterday? No, I didn't."],v:['verb']},
+
+  // ========== 购物与食物（4题） ==========
+  {cat:'购物',t:"Can I have some {food}, please?",e:["Can I have a {food}, please?","Can I have some {food_s}, please?","Can I have some {food}, please?"],v:['food']},
+  {cat:'购物',t:"How much is it?",d:["How many is it?","How much is them?","How much it is?"]},
+  {cat:'购物',t:"I want some {fruit_s}, please.",e:["I wants some {fruit_s}, please.","I want some {fruit_a}, please.","I want a {fruit_s}, please."],v:['fruit_s','fruit_a']},
+  {cat:'购物',t:"Do you want some {drink}?",e:["Are you want some {drink}?","Do you wants some {drink}?","Do you want some {food}?"],v:['drink']},
+
+  // ========== 描述人与物（4题） ==========
+  {cat:'描述',t:"This is my {family}. She is very {adj_person}.",e:["This is my {family}. She is very {weather_adj}.","That is my {family}. She is very {adj_person}.","This is my {family}. She are very {adj_person}."],v:['family','adj_person']},
+  {cat:'描述',t:"The {animal_a} is {weather_adj}.",e:["The {animal_a} are {weather_adj}.","A {animal_a} is {weather_adj}.","The {animal_s} is {weather_adj}."],v:['animal_a','animal_s','weather_adj']},
+  {cat:'描述',t:"My friend is {adj_person} and {adj_person2}.",e:["My friend are {adj_person} and {adj_person2}.","My friend is {adj_person}.","My friends is {adj_person} and {adj_person2}."],v:['adj_person','adj_person2']},
+  {cat:'描述',t:"He is {age} years old and {adj_person}.",e:["He are {age} years old and {adj_person}.","He is {age} years old or {adj_person}.","He is {adj_person} and {age} years old."],v:['age','adj_person']},
+
+  // ========== 更多日常表达（4题） ==========
+  {cat:'日常',t:"Where is the {place_city}?",d:["Where are the {place_city}?","Where the {place_city}?","What is the {place_city}?"],v:['place_city']},
+  {cat:'日常',t:"It's next to the {place_city2}.",e:["It next to the {place_city2}.","Its next to the {place_city2}.","It's next {place_city2}."],v:['place_city2']},
+  {cat:'日常',t:"I'm going to {place_in}.",e:["I going to {place_in}.","I'm going {place_in}.","I am going to {place_in}."],v:['place_in']},
+  {cat:'日常',t:"I will {vbase} tomorrow.",e:["I will {ving} tomorrow.","I will {vbase} yesterday.","I am going to {vbase} tomorrow."],v:['verb']},
+
+  // ========== 照片与存在 There is/are（5题）==========
+  {cat:'照片',t:"There is a {animal} in this photo.",e:["There are a {animal} in this photo.","There is a {animal} on this photo.","There is an {animal} in this photo."],v:['animal']},
+  {cat:'照片',t:"There is a {animal2} in the photo. It's {ving} {food}.",e:["There is a {animal2} in the photo. It {ving} {food}.","There are a {animal2} in the photo. It's {ving} {food}.","There is a {animal2} in the photo. Its {ving} {food}."],v:['animal2','verb','food']},
+  {cat:'照片',t:"There are {num_adj} {animal_pl} on the bike.",e:["There is {num_adj} {animal_pl} on the bike.","There are {num_adj} {animal_pl} in the bike.","There are {num_adj} {animal_pl} at the bike."],v:['num_adj','animal_pl']},
+  {cat:'照片',t:"There are {num_adj2} {animal_pl2} in the photo. They're {ving2} {food2}.",e:["There is {num_adj2} {animal_pl2} in the photo. They're {ving2} {food2}.","There are {num_adj2} {animal_pl2} in the photo. They {ving2} {food2}.","There are {num_adj2} {animal_pl2} on the photo. They're {ving2} {food2}."],v:['num_adj2','animal_pl2','verb2','food2']},
+  {cat:'照片',t:"There are some nice photos here.",d:["There is some nice photos here.","There are some nice photo here.","There are some nice photos their."]},
+
+  // ========== 计划与打算 be going to（5题）==========
+  {cat:'计划',t:"We're going to visit {place_trip} tomorrow.",e:["We going to visit {place_trip} tomorrow.","We're going visit {place_trip} tomorrow.","We're going to visited {place_trip} tomorrow."],v:['place_trip']},
+  {cat:'计划',t:"I'm going to {ving3} in the sea.",e:["I going to {ving3} in the sea.","I'm going {ving3} in the sea.","I'm going to {vbase3} in the sea."],v:['verb3']},
+  {cat:'计划',t:"I'm going to visit my {family2}.",e:["I going to visit my {family2}.","I'm going visit my {family2}.","I'm going to visited my {family2}."],v:['family2']},
+  {cat:'计划',t:"{name2} is going to {vbase4} a {animal_ride}.",e:["{name2} going to {vbase4} a {animal_ride}.","{name2} is going {vbase4} a {animal_ride}.","{name2} is going to {ving4} a {animal_ride}."],v:['name2','verb4','animal_ride']},
+  {cat:'计划',t:"Time for {activity2}, children.",d:["Time to {activity2}, children.","Time for {activity2} children.","It's time {activity2}, children."],v:['activity2']},
+
+  // ========== 运动日 be going to疑问句（5题）==========
+  {cat:'运动日',t:"Are you going to {vbase5} on sports day?",e:["Are you going {vbase5} on sports day?","Are you go to {vbase5} on sports day?","Is you going to {vbase5} on sports day?"],v:['verb5']},
+  {cat:'运动日',t:"I'm going to run the {race} metres.",e:["I going to run the {race} metres.","I'm going run the {race} metres.","I'm going to running the {race} metres."],v:['race']},
+  {cat:'运动日',t:"I'm going to do the {sport2}.",e:["I going to do the {sport2}.","I'm going do the {sport2}.","I'm going to doing the {sport2}."],v:['sport2']},
+  {cat:'运动日',t:"What are you going to do on sports day?",d:["What you going to do on sports day?","What are you go to do on sports day?","What are you going do on sports day?"]},
+  {cat:'运动日',t:"PE is my favourite subject.",d:["PE is my favourite subjects.","PE are my favourite subject.","PE is me favourite subject."]}
+];
+
+// ========== 出题引擎 ==========
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+function genQ(tpl){
+  var vars={},used={};
+  var verbLoc=null;
+  var hasRoom=tpl.v&&tpl.v.some(function(v){return v.replace(/\d+$/,'')==='room'});
+  var hasLoc=tpl.v&&tpl.v.some(function(v){return['place_in','place_at','place_on','room'].indexOf(v.replace(/\d+$/,''))>=0});
+  for(var k=0;k<(tpl.v||[]).length;k++){
+    var vn=tpl.v[k];
+    var baseVn=vn.replace(/\d+$/,'');
+    if(baseVn==='verb'){
+      var suffix=vn.replace('verb','')||'';
+      var pool=hasRoom?VB.filter(function(v){return v.loc!=='outdoor'}):VB;
+      var vp=pick(pool);
+      vars['vbase'+suffix]=vp.b;vars['ving'+suffix]=vp.i;vars['vs'+suffix]=vp.s;vars['vpast'+suffix]=vp.p;
+      verbLoc=vp.loc||null;
+    }else if(baseVn==='vstate'){
+      var suffix2=vn.replace('vstate','')||'';
+      var vp2=pick(VB_STATE);
+      vars['vs'+suffix2]=vp2.s;vars['vbase'+suffix2]=vp2.b;vars['ving'+suffix2]=vp2.i;vars['vpast'+suffix2]=vp2.p;
+    }
+  }
+  for(var k2=0;k2<(tpl.v||[]).length;k2++){
+    var vn2=tpl.v[k2];
+    var baseVn2=vn2.replace(/\d+$/,'');
+    if(baseVn2==='verb'||baseVn2==='vstate')continue;
+    var base=baseVn2;
+    var list=W[base];
+    if(hasLoc&&verbLoc&&VLOC[verbLoc]&&VLOC[verbLoc][base]&&VLOC[verbLoc][base].length>0)list=VLOC[verbLoc][base];
+    if(!list||!list.length)continue;
+    if(!used[base])used[base]=[];
+    var val,tt=0;
+    do{val=pick(list);tt++}while(used[base].indexOf(val)>=0&&tt<20&&list.length>used[base].length);
+    vars[vn2]=val;used[base].push(val);
+  }
+  function fill(s){for(var key in vars)s=s.replace(new RegExp('\\{'+key+'\\}','g'),vars[key]);return s}
+  var correct=fill(tpl.t);
+  var distractors=tpl.e?tpl.e.map(fill):tpl.d.slice();
+  return{cat:tpl.cat,correct:correct,d:distractors};
+}
+
+function genRound(count){
+  var pool=TL4.slice();shuffle(pool);
+  var result=[],usedC={};
+  for(var r=0;r<3&&result.length<count;r++){
+    for(var i=0;i<pool.length&&result.length<count;i++){
+      var q=genQ(pool[i]);
+      if(!usedC[q.correct]){usedC[q.correct]=1;result.push(q)}
+    }
+  }
+  return result;
+}
+
+// ========== 语音 ==========
+function getBestVoice(){
+  var vcs=speechSynthesis.getVoices();var best=null,bp=-1;
+  for(var i=0;i<vcs.length;i++){
+    var n=vcs[i].name.toLowerCase();var p=0;
+    if(n.indexOf('google')>=0&&(n.indexOf('en-us')>=0||n.indexOf('english')>=0))p=10;
+    else if(n.indexOf('microsoft')>=0&&(n.indexOf('en-us')>=0||n.indexOf('english')>=0)&&n.indexOf('online')>=0)p=9;
+    else if(n.indexOf('en-us')>=0||n.indexOf('english us')>=0||n.indexOf('english (united states)')>=0)p=7;
+    else if(n.indexOf('english')>=0||n.indexOf('en-')>=0)p=5;
+    else if(vcs[i].lang&&vcs[i].lang.indexOf('en')===0)p=3;
+    if(p>bp){bp=p;best=vcs[i]}
+  }
+  return best;
+}
+
+var kaTimer=null;
+function startKa(){stopKa();kaTimer=setInterval(function(){if(speechSynthesis.speaking){speechSynthesis.pause();setTimeout(function(){speechSynthesis.resume()},50)}},5000)}
+function stopKa(){if(kaTimer){clearInterval(kaTimer);kaTimer=null}}
+
+function speak(text,cb){
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=RATE;u.pitch=1;
+  var vc=getBestVoice();if(vc)u.voice=vc;
+  u.onend=function(){stopKa();if(cb)cb()};
+  u.onerror=function(){stopKa();if(cb)cb()};
+  speechSynthesis.speak(u);startKa();
+}
+
+function speakLater(text,cb){
+  speechSynthesis.cancel();
+  setTimeout(function(){speak(text,cb)},80);
+}
+
+function playOk(){
+  try{var c=new(window.AudioContext||window.webkitAudioContext)();[523.25,659.25,783.99].forEach(function(f,i){var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.3,c.currentTime+i*.15);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.15+.3);o.connect(g);g.connect(c.destination);o.start(c.currentTime+i*.15);o.stop(c.currentTime+i*.15+.3)})}catch(e){}
+}
+function playNo(){
+  try{var c=new(window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=220;g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.4);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.4)}catch(e){}
+}
+
+// ========== 页面切换 ==========
+var pages=['pgHome','pgPlay','pgOpt','pgWrong','pgFinal'];
+function showPg(id){for(var i=0;i<pages.length;i++)document.getElementById(pages[i]).className='hide';document.getElementById(id).className=''}
+
+function updScore(){
+  var ids1=['sc1','sc2','sc3'],ids2=['sa1','sa2','sa3'];
+  for(var i=0;i<3;i++){
+    var e1=document.getElementById(ids1[i]);if(e1)e1.textContent=okCnt;
+    var e2=document.getElementById(ids2[i]);if(e2)e2.textContent=ansCnt;
+  }
+}
+
+// ========== 游戏流程 ==========
+function doStart(){
+  qs=genRound(TOTAL);
+  idx=0;okCnt=0;ansCnt=0;
+  doPlay();
+}
+
+function doPlay(){
+  if(idx>=qs.length){doFinal();return}
+  curQ=qs[idx];firstOk=true;
+  showPg('pgPlay');
+  document.getElementById('prog1').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+  document.getElementById('tag1').textContent=curQ.cat;
+  document.getElementById('playSt').textContent='🔊 正在播放录音...';
+  document.getElementById('playHint').textContent='请仔细听，录音将播放两遍';
+  document.getElementById('btnReplay').className='replay-btn';
+  document.getElementById('btnNext').className='next-btn hide';
+  updScore();
+  speak(curQ.correct,function(){
+    document.getElementById('playSt').textContent='🔊 第二遍播放中...';
+    document.getElementById('playHint').textContent='';
+    setTimeout(function(){speakLater(curQ.correct,function(){
+      document.getElementById('playSt').textContent='✅ 录音播放完毕';
+      document.getElementById('playHint').textContent='准备好了吗？';
+      document.getElementById('btnNext').className='next-btn';
+    })},2000);
+  });
+}
+
+function doReplay(){
+  speechSynthesis.cancel();stopKa();
+  document.getElementById('playSt').textContent='🔊 再听一遍...';
+  speak(curQ.correct,function(){
+    document.getElementById('playSt').textContent='✅ 播放完毕';
+    document.getElementById('btnNext').className='next-btn';
+  });
+}
+
+var _optLock=false; // 防止touchend+click双触发
+function handleOpt(t){
+  if(_optLock)return;
+  if(t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+  _optLock=true;
+  var box=document.getElementById('optsBox');
+  var allBtns=box.querySelectorAll('.opt');
+  var txt=t.textContent;
+  for(var j=0;j<allBtns.length;j++)allBtns[j].className='opt off';
+  if(txt===curQ.correct){
+    t.className='opt ok';
+    ansCnt++;
+    if(firstOk)okCnt++;
+    updScore();playOk();
+    setTimeout(function(){idx++;_optLock=false;doPlay()},1500);
+  }else{
+    t.className='opt no';
+    firstOk=false;
+    for(var j2=0;j2<allBtns.length;j2++){if(allBtns[j2].textContent===curQ.correct)allBtns[j2].className='opt ok'}
+    playNo();
+    showPg('pgWrong');
+    document.getElementById('prog3').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+    document.getElementById('ansCorrect').textContent=curQ.correct;
+    updScore();
+    setTimeout(function(){
+      _optLock=false;
+      showPg('pgPlay');
+      document.getElementById('prog1').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+      document.getElementById('tag1').textContent=curQ.cat;
+      document.getElementById('playSt').textContent='🔊 重新播放...';
+      document.getElementById('playHint').textContent='仔细听，再选一次';
+      document.getElementById('btnReplay').className='replay-btn';
+      document.getElementById('btnNext').className='next-btn hide';
+      updScore();
+      speak(curQ.correct,function(){
+        document.getElementById('playSt').textContent='✅ 播放完毕';
+        document.getElementById('playHint').textContent='';
+        document.getElementById('btnNext').className='next-btn';
+      });
+    },2000);
+  }
+}
+
+function doShowOpt(){
+  showPg('pgOpt');
+  document.getElementById('prog2').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+  document.getElementById('tag2').textContent=curQ.cat;
+  updScore();
+  _optLock=false;
+  var box=document.getElementById('optsBox');box.innerHTML='';
+  var arr=[curQ.correct].concat(curQ.d);shuffle(arr);
+  for(var i=0;i<arr.length;i++){
+    var b=document.createElement('button');
+    b.className='opt';b.textContent=arr[i];
+    b.setAttribute('data-idx',i);
+    box.appendChild(b);
+  }
+}
+
+function doFinal(){
+  showPg('pgFinal');
+  var pct=ansCnt>0?Math.round(okCnt/ansCnt*100):0;
+  var msg='';
+  if(pct>=90)msg='太厉害了！四年级英语小达人！';
+  else if(pct>=80)msg='很棒哦！继续加油，更高处见！';
+  else if(pct>=70)msg='不错不错！再练习练习就更厉害了！';
+  else msg='别灰心！多听多练，英语一定会越来越好！';
+  document.getElementById('finalMsg').textContent=msg;
+  document.getElementById('finalDetail').innerHTML='年级：四年级<br>正确：'+okCnt+' / '+ansCnt+'<br>正确率：'+pct+'%';
+}
+
+function goHome(){speechSynthesis.cancel();stopKa();showPg('pgHome')}
+
+// ========== 绑定事件 ==========
+bindTap(document.getElementById('btnStart'),doStart);
+bindTap(document.getElementById('btnReplay'),doReplay);
+bindTap(document.getElementById('btnNext'),doShowOpt);
+bindTap(document.getElementById('btnHome1'),goHome);
+bindTap(document.getElementById('btnHome2'),goHome);
+
+// 选项区事件只绑定一次（避免答错重做时重复绑定导致多计数）
+(function(){
+  var box=document.getElementById('optsBox');
+  box.addEventListener('touchend',function(ev){
+    var t=ev.target;
+    if(!t.className||t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+    ev.preventDefault();
+    handleOpt(t);
+  },{passive:false});
+  box.addEventListener('click',function(ev){
+    var t=ev.target;
+    if(!t.className||t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+    handleOpt(t);
+  });
+})();
+</script>
+</body>
+</html>

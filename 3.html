@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>听录音选句子 - 三年级英语</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,'Segoe UI',sans-serif;background:linear-gradient(135deg,#43e97b,#38f9d7);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:10px}
+.box{background:#fff;border-radius:24px;padding:24px 18px;max-width:420px;width:100%;box-shadow:0 20px 60px rgba(0,0,0,.3);text-align:center;min-height:90vh;display:flex;flex-direction:column}
+h1{font-size:24px;color:#2e9e5a;margin-bottom:4px}
+.sub{font-size:14px;color:#888;margin-bottom:16px}
+.big-btn{display:block;width:100%;padding:20px;border:none;border-radius:16px;font-size:22px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#43e97b,#38f9d7);color:#fff;box-shadow:0 6px 20px rgba(67,233,123,.4);margin:12px 0;touch-action:manipulation;-webkit-touch-callout:none}
+.big-btn:active{transform:scale(.95);opacity:.85}
+.score-bar{display:flex;justify-content:space-around;background:#e8f8ef;border-radius:12px;padding:8px;margin:8px 0}
+.score-item{text-align:center}
+.score-label{font-size:12px;color:#888}
+.score-num{font-size:20px;font-weight:700;color:#2e9e5a}
+.prog{font-size:13px;color:#888;margin-bottom:8px}
+.tag{display:inline-block;background:#e8f8ef;color:#2e9e5a;padding:3px 10px;border-radius:20px;font-size:12px;margin-bottom:8px}
+.play-txt{font-size:20px;color:#2e9e5a;font-weight:700;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+.hint{font-size:13px;color:#999;margin-top:6px}
+.btn-row{display:flex;gap:10px;justify-content:center;margin-top:12px}
+.replay-btn{padding:12px 20px;border:2px solid #2e9e5a;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;background:#fff;color:#2e9e5a;touch-action:manipulation;-webkit-touch-callout:none}
+.replay-btn:active{transform:scale(.95);opacity:.85}
+.next-btn{padding:12px 24px;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;background:linear-gradient(135deg,#43e97b,#38f9d7);color:#fff;box-shadow:0 4px 15px rgba(67,233,123,.3);touch-action:manipulation;-webkit-touch-callout:none}
+.next-btn:active{transform:scale(.95);opacity:.85}
+.opts{display:flex;flex-direction:column;gap:10px;margin:12px 0}
+.opt{padding:14px;border:2px solid #d4f0df;border-radius:12px;font-size:15px;background:#f5fcf8;cursor:pointer;text-align:left;line-height:1.4;touch-action:manipulation;-webkit-touch-callout:none}
+.opt:active{transform:scale(.97);opacity:.85}
+.opt.ok{background:#d4edda;border-color:#28a745;color:#155724;font-weight:700}
+.opt.no{background:#f8d7da;border-color:#dc3545;color:#721c24}
+.opt.off{pointer-events:none;opacity:.7}
+.wrong-txt{font-size:18px;color:#e74c3c;font-weight:700;margin:10px 0}
+.result-box{background:#e8f8ef;border-radius:14px;padding:16px;margin:12px 0}
+.result-detail{font-size:14px;color:#666;margin-top:6px;line-height:1.6}
+.final-msg{font-size:20px;color:#2e9e5a;font-weight:700;line-height:1.6;margin:16px 0}
+.back-btn{padding:8px 18px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;margin-top:8px;color:#666;touch-action:manipulation;-webkit-touch-callout:none}
+.hide{display:none!important}
+.brand{margin-top:auto;padding-top:14px;border-top:1px solid #eee;color:#000;font-size:18px;font-weight:700;letter-spacing:1px;-webkit-user-select:none;user-select:none}
+</style>
+</head>
+<body>
+<div class="box">
+
+  <!-- 首页 -->
+  <div id="pgHome">
+    <h1>🎧 听录音选句子</h1>
+    <div class="sub">三年级 · 30题</div>
+    <button class="big-btn" id="btnStart">▶ 开始</button>
+      <button class="back-btn" onclick="window.location.href='index.html'" style="margin-top:10px;padding:8px 18px;border:1px solid #ddd;border-radius:8px;font-size:13px;background:#fff;cursor:pointer;color:#666;touch-action:manipulation;-webkit-touch-callout:none">&larr; 返回总首页</button>
+    <div style="font-size:11px;color:#aaa;margin-top:6px">🔊 建议使用Chrome浏览器以获得最佳英语发音</div>
+  </div>
+
+  <!-- 播放页 -->
+  <div id="pgPlay" class="hide">
+    <div class="prog" id="prog1"></div>
+    <div class="tag" id="tag1"></div>
+    <div class="play-txt" id="playSt">🔊 正在播放录音...</div>
+    <div class="hint" id="playHint">请仔细听，录音将播放两遍</div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc1">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa1">0</div></div>
+    </div>
+    <div class="btn-row">
+      <button class="replay-btn" id="btnReplay">🔄 再听一遍</button>
+      <button class="next-btn hide" id="btnNext">下一步 →</button>
+    </div>
+    <button class="back-btn" id="btnHome1">← 返回首页</button>
+  </div>
+
+  <!-- 选项页 -->
+  <div id="pgOpt" class="hide">
+    <div class="prog" id="prog2"></div>
+    <div class="tag" id="tag2"></div>
+    <div style="font-size:15px;color:#2e9e5a;font-weight:600;margin-bottom:8px">选出你听到的句子：</div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc2">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa2">0</div></div>
+    </div>
+    <div class="opts" id="optsBox"></div>
+  </div>
+
+  <!-- 答错提示 -->
+  <div id="pgWrong" class="hide">
+    <div class="prog" id="prog3"></div>
+    <div class="wrong-txt">😊 再听听</div>
+    <div style="font-size:14px;color:#666;margin:8px 0">正确答案：<strong id="ansCorrect"></strong></div>
+    <div class="score-bar">
+      <div class="score-item"><div class="score-label">正确</div><div class="score-num" id="sc3">0</div></div>
+      <div class="score-item"><div class="score-label">已答</div><div class="score-num" id="sa3">0</div></div>
+    </div>
+  </div>
+
+  <!-- 结束页 -->
+  <div id="pgFinal" class="hide">
+    <h2 style="margin:16px 0 8px">🎉 本轮结束</h2>
+    <div class="result-box">
+      <div class="final-msg" id="finalMsg"></div>
+      <div class="result-detail" id="finalDetail"></div>
+    </div>
+    <button class="big-btn" id="btnHome2">返回首页</button>
+  </div>
+
+  <div class="brand">眉山苏启儿 19950525152 微信同号</div>
+</div>
+
+<script>
+var GRADE=3, TOTAL=30, RATE=0.55;
+var qs=[], idx=0, okCnt=0, ansCnt=0, firstOk=true, curQ=null;
+
+// ========== 触摸安全按钮绑定 ==========
+var _tapLock=0;
+function bindTap(el,fn){
+  function go(){var now=Date.now();if(now-_tapLock<300)return;_tapLock=now;fn();}
+  el.addEventListener('touchend',function(e){e.preventDefault();go();},{passive:false});
+  el.addEventListener('click',function(){go();});
+}
+
+// ========== 词库 ==========
+var W={
+name:['Sam','Amy','Lingling','Daming','Tom','Ms Smart','Mr Li'],
+class_item:['door','window','desk','chair','book','pen','pencil','bag','ruler','blackboard'],
+color:['red','blue','yellow','green','black','white','orange','pink','purple','brown'],
+num:['one','two','three','four','five','six','seven','eight','nine','ten','eleven','twelve'],
+age:['seven','eight','nine','ten','eleven','twelve'],
+animal_s:['cats','dogs','rabbits','pandas','monkeys','birds','tigers','lions','bears','ducks','horses','pigs'],
+animal_a:['cat','dog','rabbit','panda','monkey','bird','tiger','lion','bear','duck','horse','pig'],
+family:['mother','father','brother','sister','grandma','grandpa','uncle','aunt'],
+job:['doctor','nurse','teacher','driver','farmer','policeman','pupil'],
+body_g3:['head','arm','leg','hand','foot','nose','mouth','eye','ear'],
+food:['rice','noodles','bread','milk','cake','fish','meat','chicken','soup'],
+fruit_s:['apples','bananas','oranges','pears','grapes','eggs','cakes','dumplings','sandwiches','hot dogs'],
+fruit_a:['an apple','a banana','an orange','a pear','a cake','an egg','a dumpling','a sandwich','a hot dog','a hamburger'],
+prep_place:['in the bag','on the desk','under the chair','in the box','on the bed','under the book'],
+sport:['football','basketball','table tennis','badminton','volleyball','tennis'],
+time:["seven o'clock","half past seven","eight thirty","nine fifteen","twelve o'clock","ten o'clock"],
+place_in:['the classroom','the library','the zoo','the park','the supermarket','the kitchen','the bedroom','the office'],
+place_at:['home','school','the station','the bus stop','the beach','the farm','the hospital','the shop'],
+place_on:['the playground','the bus','the farm','the street','the bridge','the floor'],
+clothes:['coat','shirt','dress','hat','T-shirt','skirt','sweater','jacket','scarf'],
+clothes_p:['shoes','trousers','shorts','socks','gloves'],
+day:['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'],
+feel:['happy','sad','tired','excited','hungry','thirsty','angry','worried','surprised','bored'],
+feel_about:['happy','excited','worried','angry','surprised','sad'],
+weather:['sunny','cloudy','rainy','windy','snowy','warm','cool','hot','cold'],
+transport:['bus','bike','car','subway','taxi','train','plane','ship'],
+season:['spring','summer','autumn','winter'],
+subject:['English','Chinese','math','music','art','PE','science'],
+drink:['water','juice','milk','tea','cola'],
+room:['bedroom','kitchen','bathroom','living room','dining room','study'],
+body:['head','tooth','stomach','ear','back'],
+big_animal:['elephant','bear','tiger','lion','horse','cow'],
+small_animal:['cat','dog','rabbit','bird','duck','monkey'],
+weather_adj:['warm','hot','cool','cold'],
+adj_person:['nice','clever','cool','naughty','cute','shy','quiet'],
+place_city:['the park','the library','the cinema','the hospital','the museum','the zoo','the school'],
+food_uncount:['rice','bread','milk','meat','fish','soup','juice','water'],
+food_count:['hamburger','hot dog','sandwich','pizza','cake'],
+city:['Beijing','Shanghai','London','New York','Sydney','Harbin'],
+adj_old:['short','young','small','weak'],
+adj_new:['tall','old','big','strong']
+};
+
+// ========== 动词 ==========
+var VB=[
+  {b:'swim',i:'swimming',s:'swims',p:'swam',loc:'outdoor'},
+  {b:'run',i:'running',s:'runs',p:'ran',loc:'outdoor'},
+  {b:'dance',i:'dancing',s:'dances',p:'danced',loc:'indoor'},
+  {b:'sing',i:'singing',s:'sings',p:'sang',loc:'indoor'},
+  {b:'draw',i:'drawing',s:'draws',p:'drew',loc:'indoor'},
+  {b:'cook',i:'cooking',s:'cooks',p:'cooked',loc:'indoor'},
+  {b:'read',i:'reading',s:'reads',p:'read',loc:'indoor'},
+  {b:'write',i:'writing',s:'writes',p:'wrote',loc:'indoor'},
+  {b:'play',i:'playing',s:'plays',p:'played',loc:'any'},
+  {b:'jump',i:'jumping',s:'jumps',p:'jumped',loc:'outdoor'},
+  {b:'eat',i:'eating',s:'eats',p:'ate',loc:'indoor'},
+  {b:'drink',i:'drinking',s:'drinks',p:'drank',loc:'indoor'},
+  {b:'walk',i:'walking',s:'walks',p:'walked',loc:'outdoor'},
+  {b:'clean',i:'cleaning',s:'cleans',p:'cleaned',loc:'indoor'},
+  {b:'wash',i:'washing',s:'washes',p:'washed',loc:'indoor'}
+];
+var VB_STATE=[
+  {b:'live',s:'lives',i:'living',p:'lived'},
+  {b:'work',s:'works',i:'working',p:'worked'},
+  {b:'study',s:'studies',i:'studying',p:'studied'},
+  {b:'teach',s:'teaches',i:'teaching',p:'taught'},
+  {b:'stay',s:'stays',i:'staying',p:'stayed'}
+];
+var VLOC={
+  indoor:{place_in:['the classroom','the library','the kitchen','the bedroom','the office','the supermarket'],place_at:['home','school','the hospital','the shop'],place_on:['the floor','the bus'],room:['bedroom','kitchen','living room','dining room','study']},
+  outdoor:{place_in:['the park','the zoo'],place_at:['the beach','the farm','the station','the bus stop','school'],place_on:['the playground','the street','the bridge'],room:[]}
+};
+
+// ========== 三年级模板 ==========
+var TL3=[
+  {cat:'问候',t:"Hello, I'm {name}.",e:["Hello I {name}.","Hello, I'am {name}.","Hello, I'm a {name}."],v:['name']},
+  {cat:'问候',t:'Good morning!',d:['Good evening!','Good night!','Good luck!']},
+  {cat:'问候',t:'How are you?',d:["How old are you?","How much is it?","How do you do?"]},
+  {cat:'问候',t:"I'm fine, thank you.",d:["I fine, thank you.","I'm fine, thank.","I'm fine thanks you."]},
+  {cat:'问候',t:'Goodbye!',d:['Good morning!','Good night!','Goodbye!']},
+  {cat:'问候',t:'Nice to meet you!',d:['Nice to see you!','Nice to hear you!','Nice meet you!']},
+  {cat:'自我介绍',t:"What's your name?",d:["What your name?","What's you name?","Whats your name?"]},
+  {cat:'自我介绍',t:"My name is {name}.",e:["My name {name}.","My name are {name}.","I name is {name}."],v:['name']},
+  {cat:'自我介绍',t:"I'm {age} years old.",e:["I {age} years old.","I'm {age} year old.","I'm {age} years."],v:['age']},
+  {cat:'指令',t:'Point to the {class_item}.',e:["Point the {class_item}.","Point to a {class_item}.","Points to the {class_item}."],v:['class_item']},
+  {cat:'指令',t:'Sit down, please.',d:['Stand up, please.','Sit up, please.','Sit down please!']},
+  {cat:'指令',t:'Stand up, please.',d:['Sit down, please.','Stand up please!','Stand down, please.']},
+  {cat:'颜色',t:"It's {color}.",e:["It {color}.","Its {color}.","It are {color}."],v:['color']},
+  {cat:'颜色',t:"It's a {color} {animal_a}.",e:["It's a {animal_a} {color}.","It a {color} {animal_a}.","It's {color} {animal_a}."],v:['color','animal_a']},
+  {cat:'数字',t:'How many?',d:['How much?','How old?','How long?']},
+  {cat:'数字',t:"I'm {age}.",e:["I {age}.","I'm a {age}.","I are {age}."],v:['age']},
+  {cat:'动物',t:"I like {animal_s}.",e:["I likes {animal_s}.","I like {animal_a}.","I like a {animal_s}."],v:['animal_s','animal_a']},
+  {cat:'动物',t:"Do you like {animal_s}?",e:["Are you like {animal_s}?","Does you like {animal_s}?","Do you like {animal_a}?"],v:['animal_s','animal_a']},
+  {cat:'动物',t:"The {animal_a} is very cute.",e:["The {animal_s} is very cute.","The {animal_a} are very cute.","A {animal_a} are very cute."],v:['animal_a','animal_s']},
+  {cat:'动物',t:"I don't like {animal_s}.",e:["I doesn't like {animal_s}.","I don't likes {animal_s}.","I no like {animal_s}."],v:['animal_s']},
+  {cat:'家庭',t:'This is my {family}.',e:["That is my {family}.","This is me {family}.","This are my {family}."],v:['family']},
+  {cat:'家庭',t:"He's a {job}.",e:["He a {job}.","He's {job}.","He are a {job}."],v:['job']},
+  {cat:'家庭',t:"She's a {job}.",e:["She a {job}.","She's {job}.","She are a {job}."],v:['job']},
+  {cat:'身体',t:'This is my {body_g3}.',e:["This is me {body_g3}.","This are my {body_g3}.","This is my {body_g3}s."],v:['body_g3']},
+  {cat:'身体',t:'Point to your {body_g3}.',e:["Point you {body_g3}.","Points to your {body_g3}.","Point to you {body_g3}."],v:['body_g3']},
+  {cat:'食物',t:"I'd like some {food}.",e:["I'd like a {food}.","I like some {food}.","I'd like some {food}s."],v:['food']},
+  {cat:'食物',t:"I like {fruit_s}.",e:["I likes {fruit_s}.","I like {fruit_a}.","I like a {fruit_s}."],v:['fruit_s','fruit_a']},
+  {cat:'食物',t:"Do you like {fruit_s}?",e:["Are you like {fruit_s}?","Does you like {fruit_s}?","Do you like {fruit_a}?"],v:['fruit_s','fruit_a']},
+  {cat:'位置',t:"It's {prep_place}.",e:["It {prep_place}.","Its {prep_place}.","It are {prep_place}."],v:['prep_place']},
+  {cat:'位置',t:"Is it a {animal_a}?",e:["Are it a {animal_a}?","Is it {animal_a}?","Is it a {animal_s}?"],v:['animal_a','animal_s']},
+  {cat:'位置',t:"Yes, it is.",d:["Yes, it.","Yes, it does.","Yes, is it."]},
+  {cat:'位置',t:"No, it isn't.",d:["No, it not.","No, it doesn't.","No, isn't it."]},
+  {cat:'日常',t:"I can {vbase}.",e:["I cans {vbase}.","I can {ving}.","I can {vs}."],v:['verb']},
+  {cat:'日常',t:"Happy birthday!",d:["Happy day!","Merry birthday!","Happy birth!"]},
+  {cat:'日常',t:"This is my teacher.",d:["That is my teacher.","This are my teacher.","This is me teacher."]},
+  {cat:'日常',t:"I've got a {clothes}.",e:["I've got {clothes}.","I have got a {clothes_p}.","I've get a {clothes}."],v:['clothes','clothes_p']},
+  {cat:'日常',t:"What's this?",d:["What this?","What's that?","Whats is this?"]},
+  {cat:'日常',t:"It's a {class_item}.",e:["It a {class_item}.","Its a {class_item}.","It are a {class_item}."],v:['class_item']}
+];
+
+// ========== 出题引擎 ==========
+function pick(a){return a[Math.floor(Math.random()*a.length)]}
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+
+function genQ(tpl){
+  var vars={},used={};
+  var verbLoc=null;
+  var hasRoom=tpl.v&&tpl.v.some(function(v){return v.replace(/\d+$/,'')==='room'});
+  var hasLoc=tpl.v&&tpl.v.some(function(v){return['place_in','place_at','place_on','room'].indexOf(v.replace(/\d+$/,''))>=0});
+  for(var k=0;k<(tpl.v||[]).length;k++){
+    var vn=tpl.v[k];
+    if(vn==='verb'){
+      var pool=hasRoom?VB.filter(function(v){return v.loc!=='outdoor'}):VB;
+      var vp=pick(pool);
+      vars.vbase=vp.b;vars.ving=vp.i;vars.vs=vp.s;vars.vpast=vp.p;
+      verbLoc=vp.loc||null;
+    }else if(vn==='vstate'){
+      var vp2=pick(VB_STATE);
+      vars.vs=vp2.s;vars.vbase=vp2.b;vars.ving=vp2.i;vars.vpast=vp2.p;
+    }
+  }
+  for(var k2=0;k2<(tpl.v||[]).length;k2++){
+    var vn2=tpl.v[k2];
+    if(vn2==='verb'||vn2==='vstate')continue;
+    var base=vn2.replace(/\d+$/,'');
+    var list=W[base];
+    if(hasLoc&&verbLoc&&VLOC[verbLoc]&&VLOC[verbLoc][base]&&VLOC[verbLoc][base].length>0)list=VLOC[verbLoc][base];
+    if(!list||!list.length)continue;
+    if(!used[base])used[base]=[];
+    var val,tt=0;
+    do{val=pick(list);tt++}while(used[base].indexOf(val)>=0&&tt<20&&list.length>used[base].length);
+    vars[vn2]=val;used[base].push(val);
+  }
+  function fill(s){for(var key in vars)s=s.replace(new RegExp('\\{'+key+'\\}','g'),vars[key]);return s}
+  var correct=fill(tpl.t);
+  var distractors=tpl.e?tpl.e.map(fill):tpl.d.slice();
+  return{cat:tpl.cat,correct:correct,d:distractors};
+}
+
+function genRound(count){
+  var pool=TL3.slice();shuffle(pool);
+  var result=[],usedC={};
+  for(var r=0;r<3&&result.length<count;r++){
+    for(var i=0;i<pool.length&&result.length<count;i++){
+      var q=genQ(pool[i]);
+      if(!usedC[q.correct]){usedC[q.correct]=1;result.push(q)}
+    }
+  }
+  return result;
+}
+
+// ========== 语音 ==========
+function getBestVoice(){
+  var vcs=speechSynthesis.getVoices();var best=null,bp=-1;
+  for(var i=0;i<vcs.length;i++){
+    var n=vcs[i].name.toLowerCase();var p=0;
+    if(n.indexOf('google')>=0&&(n.indexOf('en-us')>=0||n.indexOf('english')>=0))p=10;
+    else if(n.indexOf('microsoft')>=0&&(n.indexOf('en-us')>=0||n.indexOf('english')>=0)&&n.indexOf('online')>=0)p=9;
+    else if(n.indexOf('en-us')>=0||n.indexOf('english us')>=0||n.indexOf('english (united states)')>=0)p=7;
+    else if(n.indexOf('english')>=0||n.indexOf('en-')>=0)p=5;
+    else if(vcs[i].lang&&vcs[i].lang.indexOf('en')===0)p=3;
+    if(p>bp){bp=p;best=vcs[i]}
+  }
+  return best;
+}
+
+var kaTimer=null;
+function startKa(){stopKa();kaTimer=setInterval(function(){if(speechSynthesis.speaking){speechSynthesis.pause();setTimeout(function(){speechSynthesis.resume()},50)}},5000)}
+function stopKa(){if(kaTimer){clearInterval(kaTimer);kaTimer=null}}
+
+function speak(text,cb){
+  speechSynthesis.cancel();
+  var u=new SpeechSynthesisUtterance(text);
+  u.lang='en-US';u.rate=RATE;u.pitch=1;
+  var vc=getBestVoice();if(vc)u.voice=vc;
+  u.onend=function(){stopKa();if(cb)cb()};
+  u.onerror=function(){stopKa();if(cb)cb()};
+  speechSynthesis.speak(u);startKa();
+}
+
+function speakLater(text,cb){
+  speechSynthesis.cancel();
+  setTimeout(function(){speak(text,cb)},80);
+}
+
+function playOk(){
+  try{var c=new(window.AudioContext||window.webkitAudioContext)();[523.25,659.25,783.99].forEach(function(f,i){var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=f;g.gain.setValueAtTime(.3,c.currentTime+i*.15);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+i*.15+.3);o.connect(g);g.connect(c.destination);o.start(c.currentTime+i*.15);o.stop(c.currentTime+i*.15+.3)})}catch(e){}
+}
+function playNo(){
+  try{var c=new(window.AudioContext||window.webkitAudioContext)();var o=c.createOscillator(),g=c.createGain();o.type='sine';o.frequency.value=220;g.gain.setValueAtTime(.3,c.currentTime);g.gain.exponentialRampToValueAtTime(.001,c.currentTime+.4);o.connect(g);g.connect(c.destination);o.start();o.stop(c.currentTime+.4)}catch(e){}
+}
+
+// ========== 页面切换 ==========
+var pages=['pgHome','pgPlay','pgOpt','pgWrong','pgFinal'];
+function showPg(id){for(var i=0;i<pages.length;i++)document.getElementById(pages[i]).className='hide';document.getElementById(id).className=''}
+
+function updScore(){
+  var ids1=['sc1','sc2','sc3'],ids2=['sa1','sa2','sa3'];
+  for(var i=0;i<3;i++){
+    var e1=document.getElementById(ids1[i]);if(e1)e1.textContent=okCnt;
+    var e2=document.getElementById(ids2[i]);if(e2)e2.textContent=ansCnt;
+  }
+}
+
+// ========== 游戏流程 ==========
+function doStart(){
+  qs=genRound(TOTAL);
+  idx=0;okCnt=0;ansCnt=0;
+  doPlay();
+}
+
+function doPlay(){
+  if(idx>=qs.length){doFinal();return}
+  curQ=qs[idx];firstOk=true;
+  showPg('pgPlay');
+  document.getElementById('prog1').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+  document.getElementById('tag1').textContent=curQ.cat;
+  document.getElementById('playSt').textContent='🔊 正在播放录音...';
+  document.getElementById('playHint').textContent='请仔细听，录音将播放两遍';
+  document.getElementById('btnReplay').className='replay-btn';
+  document.getElementById('btnNext').className='next-btn hide';
+  updScore();
+  speak(curQ.correct,function(){
+    document.getElementById('playSt').textContent='🔊 第二遍播放中...';
+    document.getElementById('playHint').textContent='';
+    setTimeout(function(){speakLater(curQ.correct,function(){
+      document.getElementById('playSt').textContent='✅ 录音播放完毕';
+      document.getElementById('playHint').textContent='准备好了吗？';
+      document.getElementById('btnNext').className='next-btn';
+    })},2000);
+  });
+}
+
+function doReplay(){
+  speechSynthesis.cancel();stopKa();
+  document.getElementById('playSt').textContent='🔊 再听一遍...';
+  speak(curQ.correct,function(){
+    document.getElementById('playSt').textContent='✅ 播放完毕';
+    document.getElementById('btnNext').className='next-btn';
+  });
+}
+
+var _optLock=false; // 防止touchend+click双触发
+function handleOpt(t){
+  if(_optLock)return;
+  if(t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+  _optLock=true;
+  var box=document.getElementById('optsBox');
+  var allBtns=box.querySelectorAll('.opt');
+  var txt=t.textContent;
+  for(var j=0;j<allBtns.length;j++)allBtns[j].className='opt off';
+  if(txt===curQ.correct){
+    t.className='opt ok';
+    ansCnt++;
+    if(firstOk)okCnt++;
+    updScore();playOk();
+    setTimeout(function(){idx++;_optLock=false;doPlay()},1500);
+  }else{
+    t.className='opt no';
+    firstOk=false;
+    for(var j2=0;j2<allBtns.length;j2++){if(allBtns[j2].textContent===curQ.correct)allBtns[j2].className='opt ok'}
+    playNo();
+    showPg('pgWrong');
+    document.getElementById('prog3').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+    document.getElementById('ansCorrect').textContent=curQ.correct;
+    updScore();
+    setTimeout(function(){
+      _optLock=false;
+      showPg('pgPlay');
+      document.getElementById('prog1').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+      document.getElementById('tag1').textContent=curQ.cat;
+      document.getElementById('playSt').textContent='🔊 重新播放...';
+      document.getElementById('playHint').textContent='仔细听，再选一次';
+      document.getElementById('btnReplay').className='replay-btn';
+      document.getElementById('btnNext').className='next-btn hide';
+      updScore();
+      speak(curQ.correct,function(){
+        document.getElementById('playSt').textContent='✅ 播放完毕';
+        document.getElementById('playHint').textContent='';
+        document.getElementById('btnNext').className='next-btn';
+      });
+    },2000);
+  }
+}
+
+function doShowOpt(){
+  showPg('pgOpt');
+  document.getElementById('prog2').textContent='第 '+(idx+1)+' / '+qs.length+' 题';
+  document.getElementById('tag2').textContent=curQ.cat;
+  updScore();
+  _optLock=false;
+  var box=document.getElementById('optsBox');box.innerHTML='';
+  var arr=[curQ.correct].concat(curQ.d);shuffle(arr);
+  for(var i=0;i<arr.length;i++){
+    var b=document.createElement('button');
+    b.className='opt';b.textContent=arr[i];
+    b.setAttribute('data-idx',i);
+    box.appendChild(b);
+  }
+}
+
+function doFinal(){
+  showPg('pgFinal');
+  var pct=ansCnt>0?Math.round(okCnt/ansCnt*100):0;
+  var msg='';
+  if(pct>=90)msg='天才啊！明天又来，我要打败你！';
+  else if(pct>=80)msg='人才啊！明天又来，我要通知你们校长！';
+  else if(pct>=70)msg='看不出来你还很厉害呢！明天又来！';
+  else msg='其实你是天才，只是没有拿到"三苏高分秘籍"！明天又来，我传授你点高分秘诀！';
+  document.getElementById('finalMsg').textContent=msg;
+  document.getElementById('finalDetail').innerHTML='年级：三年级<br>正确：'+okCnt+' / '+ansCnt+'<br>正确率：'+pct+'%';
+}
+
+function goHome(){speechSynthesis.cancel();stopKa();showPg('pgHome')}
+
+// ========== 绑定事件 ==========
+bindTap(document.getElementById('btnStart'),doStart);
+bindTap(document.getElementById('btnReplay'),doReplay);
+bindTap(document.getElementById('btnNext'),doShowOpt);
+bindTap(document.getElementById('btnHome1'),goHome);
+bindTap(document.getElementById('btnHome2'),goHome);
+
+// 选项区事件只绑定一次（避免答错重做时重复绑定导致多计数）
+(function(){
+  var box=document.getElementById('optsBox');
+  box.addEventListener('touchend',function(ev){
+    var t=ev.target;
+    if(!t.className||t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+    ev.preventDefault();
+    handleOpt(t);
+  },{passive:false});
+  box.addEventListener('click',function(ev){
+    var t=ev.target;
+    if(!t.className||t.className.indexOf('opt')<0||t.className.indexOf('off')>=0)return;
+    handleOpt(t);
+  });
+})();
+</script>
+</body>
+</html>

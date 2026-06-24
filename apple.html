@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
+<title>苹果机 V5</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+html,body{height:100%;overflow:hidden;position:fixed;width:100%;top:0;left:0}
+body{background:linear-gradient(135deg,#FFF8E7,#FFE4B5,#FFDAB9);height:100dvh;display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#333;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none;overflow:hidden;touch-action:manipulation;-webkit-overflow-scrolling:auto}
+.portrait-warn{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:linear-gradient(135deg,#FFF8E7,#FFDAB9);z-index:99999;flex-direction:column;align-items:center;justify-content:center;font-size:1.4rem;color:#4A148C;text-align:center;padding:2rem}
+.portrait-warn .rotate-icon{font-size:4rem;animation:rotateHint 2s ease-in-out infinite;margin-bottom:1rem}
+@keyframes rotateHint{0%,100%{transform:rotate(0deg)}50%{transform:rotate(90deg)}}
+.portrait-warn .skip-btn{margin-top:1.5rem;padding:10px 28px;border-radius:20px;border:2px solid #B8860B;background:#FFF8E7;color:#4A148C;font-size:1.2rem;font-weight:bold;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.portrait-warn .skip-btn:active{background:#FFE0B2}
+@media (orientation:portrait){.portrait-warn{display:flex}}
+.game-wrap{width:98vw;height:76dvh;display:flex;align-items:center;justify-content:center}
+.board{width:100%;height:100%;position:relative;background:radial-gradient(ellipse at center,#FFF5E6 0%,#FFE0B2 100%);border-radius:10px;border:2px solid #B8860B;box-shadow:0 2px 12px rgba(184,134,11,0.25)}
+.cell{position:absolute;width:6vw;height:12dvh;display:flex;flex-direction:column;align-items:center;justify-content:center;border-radius:5px;text-align:center;transition:all 0.08s;border:1.5px solid rgba(139,69,19,0.3);box-shadow:0 1px 3px rgba(0,0,0,0.1)}
+.cell .icon{line-height:1;margin:0;padding:0;font-weight:900}
+.cell:not(.small) .icon{font-size:5dvh}
+.cell.small .icon{font-size:3dvh}
+.cell .score{font-size:1.5dvh;opacity:0.7;margin-top:0;line-height:1;font-weight:bold;color:#4A148C}
+.cell.small{opacity:0.75}
+.cell.active{border:2.5px solid #FF6F00;box-shadow:0 0 12px #FF6F00,0 0 24px rgba(255,111,0,0.4);filter:brightness(1.3);z-index:10}
+.cell.win{animation:winFlash 0.5s ease-in-out 4}
+@keyframes winFlash{0%,100%{box-shadow:0 0 12px #FF6F00;border:2.5px solid #FF6F00}50%{box-shadow:0 0 24px #00C853,0 0 40px rgba(0,200,83,0.5);border:2.5px solid #00C853;filter:brightness(1.6)}}
+.center-area{position:absolute;top:18%;left:4%;right:4%;bottom:18%;display:flex;flex-direction:column;gap:2px;padding:4px;background:rgba(255,255,255,0.85);border-radius:8px;border:1px solid rgba(184,134,11,0.2);overflow:hidden}
+.balance-bar{display:flex;gap:8px;font-size:3dvh;padding:1px 4px;border-bottom:1px solid rgba(184,134,11,0.15);color:#4A148C;font-weight:bold;flex-wrap:nowrap;justify-content:center}
+.balance-bar strong{color:#B71C1C;font-size:4dvh}
+.betting-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:2px;flex:1;overflow:hidden}
+.bet-card{background:rgba(255,255,255,0.6);border:1.5px solid rgba(184,134,11,0.25);border-radius:5px;padding:1px 2px;text-align:center;transition:all 0.2s;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.bet-card.has-bet{border-color:#FF6F00;background:rgba(255,111,0,0.1);box-shadow:0 0 6px rgba(255,111,0,0.3)}
+.bet-card.win-flash{border-color:#00C853;box-shadow:0 0 10px #00C853;background:rgba(0,200,83,0.1);animation:cardWin 0.5s 3}
+@keyframes cardWin{0%,100%{transform:scale(1)}50%{transform:scale(1.04)}}
+.bet-card .bc-icon{font-size:5dvh;font-weight:900}
+.bet-card .bc-name{font-size:2dvh;margin:0;color:#4A148C;font-weight:bold}
+.bet-card .bc-payout{font-size:1.5dvh;opacity:0.6;color:#6A1B9A}
+.bet-card .bc-controls{display:flex;align-items:center;justify-content:center;gap:1px;margin-top:0}
+.bet-card .bc-btn{width:24px;height:24px;border-radius:50%;border:none;background:rgba(74,20,140,0.2);color:#4A148C;font-size:1.2rem;cursor:pointer;display:flex;align-items:center;justify-content:center;line-height:1;padding:0;-webkit-tap-highlight-color:transparent}
+.bet-card .bc-btn:active{background:rgba(255,111,0,0.4)}
+.bet-card .bc-btn:disabled{opacity:0.3;cursor:not-allowed}
+.bet-card .bc-amount{font-size:2.8dvh;min-width:18px;text-align:center;color:#B71C1C;font-weight:bold}
+.bottom-row{display:flex;gap:6px;align-items:center;justify-content:center;padding:2px 0;flex-wrap:nowrap}
+.btn-primary{background:linear-gradient(135deg,#FF6F00,#F57C00);color:#fff;border:none;padding:8px 28px;border-radius:16px;font-size:4dvh;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(255,111,0,0.5);-webkit-tap-highlight-color:transparent}
+.btn-primary:disabled{opacity:0.3;cursor:not-allowed}
+.btn-help{background:linear-gradient(135deg,#D50000,#FF1744);color:#fff;border:none;padding:8px 24px;border-radius:16px;font-size:4dvh;font-weight:bold;cursor:pointer;box-shadow:0 2px 8px rgba(213,0,0,0.5);-webkit-tap-highlight-color:transparent}
+.result-display{font-size:3dvh;text-align:center;min-height:2px;padding:0 4px;border-radius:4px;font-weight:bold;white-space:nowrap}
+.result-win{color:#00C853;background:rgba(0,200,83,0.1)}
+.result-lose{color:#D50000;background:rgba(213,0,0,0.08)}
+.history-bar{display:flex;gap:2px;flex-wrap:wrap;justify-content:center;font-size:2.2dvh;padding:0 2px;max-height:4dvh;overflow:hidden;font-weight:bold}
+.history-item{padding:0 3px;border-radius:3px;background:rgba(74,20,140,0.08)}
+.credits{font-size:2.8dvh;color:#6A1B9A;text-align:center;padding:2px 0;opacity:0.85;font-weight:bold}
+.recharge-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.85);z-index:9999;justify-content:center;align-items:center;flex-direction:column;animation:overlayIn 0.3s}
+.recharge-overlay.show{display:flex}
+@keyframes overlayIn{0%{opacity:0}100%{opacity:1}}
+.recharge-line1{font-size:14dvh;font-weight:900;color:#FFD700;text-shadow:0 0 30px #FFD700,0 0 60px #FF6F00,0 0 90px #D50000;animation:textPulse 0.5s ease-in-out 3}
+.recharge-line2{font-size:8dvh;font-weight:900;color:#FFD700;text-shadow:0 0 20px #FFD700,0 0 40px #FF6F00;animation:textPulse 0.5s ease-in-out 3}
+@keyframes textPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+</style>
+</head>
+<body>
+<div class="portrait-warn" id="portraitWarn">
+<div class="rotate-icon">📱</div>
+<div>横屏效果更佳</div>
+<button class="skip-btn" onclick="var el=document.documentElement;if(el.requestFullscreen)el.requestFullscreen();else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();document.getElementById('portraitWarn').style.display='none'">进入游戏</button>
+</div>
+<div class="recharge-overlay" id="rechargeOverlay">
+  <div class="recharge-line1">苏启儿送你100</div>
+  <div class="recharge-line2">19950525152</div>
+</div>
+<div class="game-wrap">
+<div class="board" id="board">
+<div class="center-area">
+<div class="balance-bar">
+<span>积分:<strong id="balance">100</strong></span>
+<span>押注:<strong id="totalBet">0</strong></span>
+<span>旋转:<strong id="spinCount">0</strong></span>
+</div>
+<div class="betting-grid" id="bettingGrid"></div>
+<div class="bottom-row">
+<button class="btn-primary" id="spinBtn" onclick="startSpin()">开始</button>
+<button class="btn-help" onclick="recharge()">救命</button>
+<div class="result-display" id="resultDisplay"></div>
+</div>
+<div class="history-bar" id="historyBar"></div>
+<div class="credits">清班数学组小同学们研制。制作：虹虹姐，刚子，Tony，雨香屁</div>
+</div>
+</div>
+</div>
+<script>
+/* === 手机防下载+防滚动+强制全屏 === */
+(function(){
+  document.addEventListener('contextmenu',function(e){e.preventDefault()},false);
+  document.addEventListener('keydown',function(e){
+    if(e.keyCode===123||e.keyCode===83&&(e.ctrlKey||e.metaKey)||e.ctrlKey&&e.shiftKey&&(e.keyCode===73||e.keyCode===74)||e.ctrlKey&&e.keyCode===85){e.preventDefault();e.stopPropagation()}
+  },true);
+  document.addEventListener('dragstart',function(e){e.preventDefault()},false);
+  document.addEventListener('copy',function(e){e.preventDefault()},false);
+  document.addEventListener('cut',function(e){e.preventDefault()},false);
+  /* 阻止触摸拖拽滚动 */
+  document.addEventListener('touchmove',function(e){e.preventDefault()},{passive:false});
+  /* 阻止双击缩放 */
+  var lastTouch=0;
+  document.addEventListener('touchend',function(e){
+    var now=Date.now();
+    if(now-lastTouch<300)e.preventDefault();
+    lastTouch=now;
+  },false);
+  /* 强制全屏：点击/触摸时进入浏览器全屏模式 */
+  function goFullscreen(){
+    var el=document.documentElement;
+    if(!document.fullscreenElement&&!document.webkitFullscreenElement){
+      if(el.requestFullscreen)el.requestFullscreen();
+      else if(el.webkitRequestFullscreen)el.webkitRequestFullscreen();
+    }
+  }
+  document.addEventListener('touchstart',function(){goFullscreen()},{once:false});
+  document.addEventListener('click',function(){goFullscreen()},{once:false});
+  /* 全屏变化时重绘盘面 */
+  document.addEventListener('fullscreenchange',function(){setTimeout(function(){if(!isSpinning)renderBoard()},300)});
+  document.addEventListener('webkitfullscreenchange',function(){setTimeout(function(){if(!isSpinning)renderBoard()},300)});
+  var style=document.createElement('style');
+  style.textContent='img,a,div,span{-webkit-touch-callout:none;-webkit-user-select:none}:-webkit-full-screen{width:100%;height:100%}:fullscreen{width:100%;height:100%}';
+  document.head.appendChild(style);
+})();
+
+/* === 盘面数据 === */
+var boardData=[
+{name:'大王',icon:'启',score:100,group:'daking',color:'#FFECB3'},
+{name:'小橙子',icon:'妹',score:2,group:'orange',color:'#FFF9C4',small:true},
+{name:'橙子',icon:'妹',score:10,group:'orange',color:'#FFE0B2'},
+{name:'苹果',icon:'🍎',score:5,group:'apple',color:'#FFCDD2'},
+{name:'小西瓜',icon:'洵',score:2,group:'watermelon',color:'#C8E6C9',small:true},
+{name:'西瓜',icon:'洵',score:40,group:'watermelon',color:'#A5D6A7'},
+{name:'小橄榄',icon:'轼',score:2,group:'olive',color:'#DCEDC8',small:true},
+{name:'橄榄',icon:'轼',score:30,group:'olive',color:'#C5E1A5'},
+{name:'苹果',icon:'🍎',score:5,group:'apple',color:'#FFCDD2'},
+{name:'小菠萝',icon:'辙',score:2,group:'pineapple',color:'#FFF9C4',small:true},
+{name:'菠萝',icon:'辙',score:20,group:'pineapple',color:'#FFF176'},
+{name:'苹果',icon:'🍎',score:5,group:'apple',color:'#FFCDD2'},
+{name:'小橙子',icon:'妹',score:2,group:'orange',color:'#FFF9C4',small:true},
+{name:'橙子',icon:'妹',score:10,group:'orange',color:'#FFE0B2'},
+{name:'空白',icon:'💩',score:0,group:'blank',color:'#D7CCC8'},
+{name:'小西瓜',icon:'洵',score:2,group:'watermelon',color:'#C8E6C9',small:true},
+{name:'西瓜',icon:'洵',score:40,group:'watermelon',color:'#A5D6A7'},
+{name:'小橄榄',icon:'轼',score:2,group:'olive',color:'#DCEDC8',small:true},
+{name:'橄榄',icon:'轼',score:30,group:'olive',color:'#C5E1A5'},
+{name:'苹果',icon:'🍎',score:5,group:'apple',color:'#FFCDD2'},
+{name:'小菠萝',icon:'辙',score:2,group:'pineapple',color:'#FFF9C4',small:true},
+{name:'菠萝',icon:'辙',score:20,group:'pineapple',color:'#FFF176'},
+{name:'苹果',icon:'🍎',score:5,group:'apple',color:'#FFCDD2'},
+{name:'小橙子',icon:'妹',score:2,group:'orange',color:'#FFF9C4',small:true},
+{name:'橙子',icon:'妹',score:10,group:'orange',color:'#FFE0B2'},
+{name:'小王',icon:'启',score:50,group:'daking',color:'#E0E0E0'},
+{name:'小橄榄',icon:'轼',score:2,group:'olive',color:'#DCEDC8',small:true},
+{name:'橄榄',icon:'轼',score:30,group:'olive',color:'#C5E1A5'},
+{name:'空白',icon:'💩',score:0,group:'blank',color:'#D7CCC8'}
+];
+
+var betOptions=[
+{id:'daking',name:'大王',icon:'启',bigScore:100,smallScore:50,smallName:'小王'},
+{id:'watermelon',name:'西瓜',icon:'洵',bigScore:40,smallScore:2,smallName:'小西瓜'},
+{id:'olive',name:'橄榄',icon:'轼',bigScore:30,smallScore:2,smallName:'小橄榄'},
+{id:'pineapple',name:'菠萝',icon:'辙',bigScore:20,smallScore:2,smallName:'小菠萝'},
+{id:'orange',name:'橙子',icon:'妹',bigScore:10,smallScore:2,smallName:'小橙子'},
+{id:'apple',name:'苹果',icon:'🍎',bigScore:5,smallScore:null,smallName:null}
+];
+
+var bets={};
+var balance=100;
+var spinCount=0;
+var maxWin=0;
+var history=[];
+var isSpinning=false;
+var cells=[];
+var chaseState={fruitId:null,rounds:0,cumLoss:0};
+
+/* === 规则4必胜序列 === */
+var SECRET_SEQ=[
+  {daking:50,watermelon:20},
+  {watermelon:20},
+  {daking:50,watermelon:20},
+  {daking:20,watermelon:20},
+  {daking:50,watermelon:20},
+  {daking:10,watermelon:20},
+  {daking:50,watermelon:20},
+  {daking:20,watermelon:20},
+  {daking:10,watermelon:20}
+];
+var secretStep=-1;
+var SECRET_BAN_POS=[0,5,16,25];
+
+function checkSecretSequence(){
+  var nextStep=secretStep+1;
+  if(nextStep>=SECRET_SEQ.length)nextStep=0;
+  var expected=SECRET_SEQ[nextStep];
+  if((bets['daking']||0)===(expected['daking']||0)&&(bets['watermelon']||0)===(expected['watermelon']||0)){
+    secretStep=nextStep;return;
+  }
+  var exp0=SECRET_SEQ[0];
+  if((bets['daking']||0)===(exp0['daking']||0)&&(bets['watermelon']||0)===(exp0['watermelon']||0)){
+    secretStep=0;return;
+  }
+  secretStep=-1;
+}
+
+/* === 救命(充值)功能 === */
+function recharge(){
+  if(isSpinning)return;
+  if(balance>=100){
+    document.getElementById('resultDisplay').innerHTML='苏启儿能救100分以下的差生';
+    document.getElementById('resultDisplay').className='result-display result-lose';
+    playLose();return;
+  }
+  if(Math.random()<0.1){
+    balance=100;
+    updateDisplay();saveState();
+    var overlay=document.getElementById('rechargeOverlay');
+    overlay.classList.add('show');
+    playCoinBurst();
+    setTimeout(function(){overlay.classList.remove('show')},3000);
+  }else{
+    document.getElementById('resultDisplay').innerHTML='救命未中，再试试？';
+    document.getElementById('resultDisplay').className='result-display result-lose';
+    playLose();
+  }
+}
+
+/* === 音频系统（音量放大版）=== */
+var audioCtx=null;
+var masterGain=null;
+var bgmInterval=null;
+function getAudio(){
+  if(!audioCtx){
+    try{
+      audioCtx=new(window.AudioContext||window.webkitAudioContext)();
+      masterGain=audioCtx.createGain();
+      masterGain.gain.value=1.5;
+      masterGain.connect(audioCtx.destination);
+    }catch(e){}
+  }
+  return audioCtx;
+}
+function playTone(f,d,t,v){
+  var c=getAudio();if(!c)return;
+  var o=c.createOscillator(),g=c.createGain();
+  o.type=t||'sine';o.frequency.value=f;
+  g.gain.setValueAtTime(v||0.2,c.currentTime);
+  g.gain.exponentialRampToValueAtTime(0.001,c.currentTime+d);
+  o.connect(g);g.connect(masterGain||c.destination);
+  o.start();o.stop(c.currentTime+d);
+}
+function playTick(){playTone(800,0.04,'square',0.1)}
+
+var bgmNotes=[523,587,659,784,659,587,523,440,523,587,659,784,880,784,659,523];
+var bgmIdx=0;
+function startBGM(){
+  if(bgmInterval)return;
+  getAudio();
+  if(!audioCtx)return;
+  bgmInterval=setInterval(function(){
+    if(audioCtx&&audioCtx.state==='running'){
+      playTone(bgmNotes[bgmIdx],0.35,'sine',0.08);
+      bgmIdx=(bgmIdx+1)%bgmNotes.length;
+    }
+  },400);
+}
+function stopBGM(){if(bgmInterval){clearInterval(bgmInterval);bgmInterval=null}}
+
+function playWin(){
+  playTone(523,0.1,'sine',0.25);
+  setTimeout(function(){playTone(659,0.1,'sine',0.25)},100);
+  setTimeout(function(){playTone(784,0.2,'sine',0.25)},200);
+}
+function playBigWin(){
+  playTone(523,0.1,'sine',0.35);
+  setTimeout(function(){playTone(659,0.1,'sine',0.35)},100);
+  setTimeout(function(){playTone(784,0.1,'sine',0.35)},200);
+  setTimeout(function(){playTone(1047,0.3,'sine',0.35)},300);
+}
+function playCoin(){
+  playTone(1200,0.08,'sine',0.3);
+  setTimeout(function(){playTone(1500,0.08,'sine',0.25)},60);
+  setTimeout(function(){playTone(1800,0.12,'sine',0.2)},120);
+}
+function playCoinBurst(){
+  for(var i=0;i<6;i++){
+    (function(idx){setTimeout(function(){playTone(1400+idx*200,0.1,'sine',0.3)},idx*80)})(i);
+  }
+}
+function playLose(){playTone(200,0.25,'sawtooth',0.12)}
+
+document.addEventListener('touchstart',function(){startBGM()},{once:true});
+document.addEventListener('click',function(){startBGM()},{once:true});
+
+function loadState(){
+  try{
+    balance=parseInt(localStorage.getItem('appleMachineV5_balance'))||100;
+    spinCount=parseInt(localStorage.getItem('appleMachineV5_spinCount'))||0;
+    maxWin=parseInt(localStorage.getItem('appleMachineV5_maxWin'))||0;
+    history=JSON.parse(localStorage.getItem('appleMachineV5_history'))||[];
+    var cs=localStorage.getItem('appleMachineV5_chase');
+    if(cs)chaseState=JSON.parse(cs);
+  }catch(e){}
+}
+function saveState(){
+  try{
+    localStorage.setItem('appleMachineV5_balance',balance);
+    localStorage.setItem('appleMachineV5_spinCount',spinCount);
+    localStorage.setItem('appleMachineV5_maxWin',maxWin);
+    localStorage.setItem('appleMachineV5_history',JSON.stringify(history));
+    localStorage.setItem('appleMachineV5_chase',JSON.stringify(chaseState));
+  }catch(e){}
+}
+
+/* === 矩形盘面定位 === */
+function getCellPos(i,n){
+  var b=document.getElementById('board');
+  var bw=b.offsetWidth,bh=b.offsetHeight;
+  var perim=2*(bw+bh);
+  var seg=perim/n;
+  var d=(i+0.5)*seg;
+  var x,y;
+  if(d<=bw){x=d;y=0}
+  else if(d<=bw+bh){x=bw;y=d-bw}
+  else if(d<=2*bw+bh){x=2*bw+bh-d;y=bh}
+  else{x=0;y=perim-d}
+  return{x:x/bw*100,y:y/bh*100}
+}
+
+function renderBoard(){
+  var b=document.getElementById('board');
+  var ex=b.querySelectorAll('.cell');
+  for(var i=0;i<ex.length;i++)ex[i].remove();
+  cells=[];
+  for(var i=0;i<boardData.length;i++){
+    var p=getCellPos(i,boardData.length);
+    var c=document.createElement('div');
+    c.className='cell'+(boardData[i].small?' small':'');
+    c.style.left=p.x+'%';c.style.top=p.y+'%';
+    c.style.transform='translate(-50%,-50%)';
+    c.style.background=boardData[i].color;
+    c.innerHTML='<div class="icon">'+boardData[i].icon+'</div><div class="score">'+boardData[i].score+'</div>';
+    b.appendChild(c);cells.push(c);
+  }
+}
+
+function renderBetting(){
+  var g=document.getElementById('bettingGrid');g.innerHTML='';
+  for(var i=0;i<betOptions.length;i++){
+    var o=betOptions[i];
+    var c=document.createElement('div');
+    c.className='bet-card';c.id='bet-'+o.id;
+    var pt=o.bigScore+(o.smallScore?'/'+o.smallScore:'');
+    c.innerHTML='<div class="bc-icon">'+o.icon+'</div><div class="bc-name">'+o.name+'</div><div class="bc-payout">'+pt+'</div><div class="bc-controls"><button class="bc-btn" onclick="adjustBet(\''+o.id+'\',-5)">−</button><span class="bc-amount" id="amt-'+o.id+'">0</span><button class="bc-btn" onclick="adjustBet(\''+o.id+'\',5)">+</button></div>';
+    g.appendChild(c);bets[o.id]=0;
+  }
+}
+
+function adjustBet(gid,delta){
+  if(isSpinning)return;
+  startBGM();
+  var total=0;for(var id in bets)total+=bets[id];
+  if(delta>0&&total+delta>balance){bets[gid]+=balance-total}
+  else{bets[gid]=Math.max(0,bets[gid]+delta)}
+  document.getElementById('amt-'+gid).textContent=bets[gid];
+  updateBetDisplay();playTone(600,0.03,'square',0.08);
+}
+
+function updateBetDisplay(){
+  var total=0;for(var id in bets)total+=bets[id];
+  document.getElementById('totalBet').textContent=total;
+  for(var i=0;i<betOptions.length;i++){
+    var o=betOptions[i];var c=document.getElementById('bet-'+o.id);
+    if(bets[o.id]>0)c.classList.add('has-bet');else c.classList.remove('has-bet');
+  }
+  document.getElementById('spinBtn').disabled=(total===0||isSpinning);
+}
+
+function updateDisplay(){
+  document.getElementById('balance').textContent=balance;
+  document.getElementById('spinCount').textContent=spinCount;
+}
+
+/* === 智能选目标（V3规则全部继承）=== */
+function smartSelectTarget(){
+  if(secretStep===8){secretStep=-1;return 25}
+  var secretForbidden={};
+  if(secretStep>=0&&secretStep<=7){
+    for(var si=0;si<SECRET_BAN_POS.length;si++)secretForbidden[SECRET_BAN_POS[si]]=true;
+  }
+  var totalBet=0;for(var id in bets)totalBet+=bets[id];
+  var originalBalance=balance+totalBet;
+  var isSmallBet=totalBet<=originalBalance*0.1;
+  var forbidden={};
+  function forbidBig(group){for(var i=0;i<boardData.length;i++){if(boardData[i].group===group&&!boardData[i].small)forbidden[i]=true}}
+  for(var i=0;i<boardData.length;i++){
+    var pos=boardData[i];var payout=0;
+    if(bets[pos.group]>0)payout=bets[pos.group]*pos.score;
+    var netGain=payout-totalBet;
+    if(netGain<=0)continue;
+    if(netGain>originalBalance*0.6)forbidden[i]=true;
+  }
+  if(!isSmallBet&&chaseState.fruitId&&chaseState.cumLoss>0){
+    var currentBetOnChase=bets[chaseState.fruitId]||0;
+    if(currentBetOnChase>0){
+      var multiplier=0;
+      for(var j=0;j<betOptions.length;j++){if(betOptions[j].id===chaseState.fruitId){multiplier=betOptions[j].bigScore;break}}
+      if(multiplier>=20){
+        var breakEvenBet=chaseState.cumLoss/(multiplier-1);
+        if(currentBetOnChase>breakEvenBet*1.15)forbidBig(chaseState.fruitId);
+        else if(currentBetOnChase>breakEvenBet*0.85){if(Math.random()>0.35)forbidBig(chaseState.fruitId)}
+      }
+    }
+  }
+  var pool=[];
+  for(var i=0;i<boardData.length;i++){if(!forbidden[i]&&!secretForbidden[i])pool.push(i)}
+  if(pool.length===0){for(var i=0;i<boardData.length;i++){if(!secretForbidden[i])pool.push(i)}}
+  if(pool.length===0){for(var i=0;i<boardData.length;i++)pool.push(i)}
+  return pool[Math.floor(Math.random()*pool.length)];
+}
+
+function updateChaseState(totalBet,winnings){
+  var maxBetId=null,maxBetAmount=0;
+  for(var id in bets){if(bets[id]>maxBetAmount){maxBetAmount=bets[id];maxBetId=id}}
+  var isBigFruit=false;
+  for(var i=0;i<betOptions.length;i++){if(betOptions[i].id===maxBetId&&betOptions[i].bigScore>=20){isBigFruit=true;break}}
+  var isDominant=maxBetAmount>totalBet*0.6;
+  var netResult=winnings-totalBet;
+  if(isBigFruit&&isDominant){
+    if(chaseState.fruitId===maxBetId){
+      chaseState.rounds++;
+      if(netResult<0)chaseState.cumLoss+=Math.abs(netResult);
+      else if(netResult>0)chaseState={fruitId:null,rounds:0,cumLoss:0};
+    }else{chaseState={fruitId:maxBetId,rounds:1,cumLoss:netResult<0?Math.abs(netResult):0}}
+  }else{chaseState={fruitId:null,rounds:0,cumLoss:0}}
+}
+
+function startSpin(){
+  if(isSpinning)return;
+  var total=0;for(var id in bets)total+=bets[id];
+  if(total===0||total>balance)return;
+  startBGM();
+  getAudio();
+  isSpinning=true;
+  balance-=total;
+  updateDisplay();
+  document.getElementById('spinBtn').disabled=true;
+  document.getElementById('resultDisplay').innerHTML='';
+  document.getElementById('resultDisplay').className='result-display';
+  for(var i=0;i<cells.length;i++){cells[i].classList.remove('win');cells[i].classList.remove('active')}
+  checkSecretSequence();
+  var target=smartSelectTarget();
+  var loops=3+Math.floor(Math.random()*2);
+  var totalSteps=loops*boardData.length+target;
+  var step=0;var pos=0;
+  cells[0].classList.add('active');
+  function doStep(){
+    cells[pos].classList.remove('active');
+    step++;pos=(pos+1)%cells.length;
+    cells[pos].classList.add('active');
+    playTick();
+    if(step>=totalSteps){setTimeout(function(){onSpinEnd(pos)},500);return}
+    var p=step/totalSteps;
+    var delay=30+Math.pow(p,2.8)*300;
+    setTimeout(doStep,delay);
+  }
+  doStep();
+}
+
+function onSpinEnd(pos){
+  try{
+    spinCount++;
+    var landed=boardData[pos];
+    var totalBet=0;for(var id in bets)totalBet+=bets[id];
+    var winnings=0;
+    for(var i=0;i<betOptions.length;i++){
+      var o=betOptions[i];
+      if(bets[o.id]>0&&landed.group===o.id){
+        var win=bets[o.id]*landed.score;
+        winnings+=win;
+        var card=document.getElementById('bet-'+o.id);
+        if(card){card.classList.add('win-flash');(function(c){setTimeout(function(){if(c)c.classList.remove('win-flash')},2500)})(card)}
+      }
+    }
+    balance+=winnings;
+    updateDisplay();
+    var r=document.getElementById('resultDisplay');
+    if(winnings>0){
+      r.innerHTML='🎉 '+landed.icon+landed.name+' +'+winnings;
+      r.className='result-display result-win';
+      if(cells[pos])cells[pos].classList.add('win');
+      if(winnings>=totalBet*10){playBigWin();playCoinBurst()}
+      else{playWin();playCoin()}
+      if(winnings>maxWin)maxWin=winnings;
+    }else{
+      r.innerHTML=landed.icon+landed.name+' 未中';
+      r.className='result-display result-lose';
+      playLose();
+    }
+    history.unshift({icon:landed.icon,name:landed.name,win:winnings,bet:totalBet});
+    if(history.length>10)history.pop();
+    renderHistory();
+    updateChaseState(totalBet,winnings);
+    saveState();
+  }catch(e){}
+  setTimeout(function(){
+    try{
+      for(var id in bets)bets[id]=0;
+      for(var j=0;j<betOptions.length;j++){
+        var amtEl=document.getElementById('amt-'+betOptions[j].id);
+        if(amtEl)amtEl.textContent='0';
+        var cardEl=document.getElementById('bet-'+betOptions[j].id);
+        if(cardEl)cardEl.classList.remove('has-bet');
+      }
+      for(var i=0;i<cells.length;i++){if(cells[i]){cells[i].classList.remove('win');cells[i].classList.remove('active')}}
+      var rd=document.getElementById('resultDisplay');
+      if(rd){rd.innerHTML='';rd.className='result-display'}
+      isSpinning=false;updateBetDisplay();
+    }catch(e2){isSpinning=false;document.getElementById('spinBtn').disabled=false}
+  },2000);
+}
+
+function renderHistory(){
+  var b=document.getElementById('historyBar');b.innerHTML='';
+  for(var i=0;i<history.length;i++){
+    var s=document.createElement('span');s.className='history-item';
+    var col=history[i].win>0?'#00C853':'#D50000';
+    s.style.color=col;
+    s.textContent=history[i].icon+(history[i].win>0?'+'+history[i].win:'-'+history[i].bet);
+    b.appendChild(s);
+  }
+}
+
+var resizeTimer=null;
+window.addEventListener('resize',function(){
+  clearTimeout(resizeTimer);
+  resizeTimer=setTimeout(function(){if(!isSpinning)renderBoard()},200);
+});
+
+function init(){loadState();renderBoard();renderBetting();updateDisplay();updateBetDisplay();renderHistory()}
+init();
+</script>
+</body>
+</html>
